@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useCartStore } from '@/lib/cart-store';
 import { useAuthStore } from '@/lib/auth-store';
+import { API_BASE_URL } from '@/lib/api-config';
 import { toast } from 'sonner';
 
 /**
@@ -23,7 +24,7 @@ export function useCartLoader() {
         if (localItems.length > 0) {
           console.log('🔄 Merging local cart with server cart...');
           
-          const response = await fetch('http://localhost:3001/api/cart/merge', {
+          const response = await fetch(`${API_BASE_URL}/cart/merge`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -67,7 +68,7 @@ export function useCartLoader() {
           // Just load server cart
           console.log('📥 Loading cart from server...');
           
-          const response = await fetch('http://localhost:3001/api/cart', {
+          const response = await fetch(`${API_BASE_URL}/cart`, {
             headers: {
               'Authorization': `Bearer ${token}`,
             }

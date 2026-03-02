@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Upload, Download, FileSpreadsheet, AlertCircle, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { RoleGuard } from "@/components/auth/role-guard";
+import { API_BASE_URL } from "@/lib/api-config";
 
 export default function BulkUploadPage() {
     return (
@@ -43,7 +44,7 @@ function BulkUploadContent() {
         formData.append('file', file);
 
         try {
-            const response = await fetch('http://localhost:3001/api/medicines/bulk-upload', {
+            const response = await fetch(`${API_BASE_URL}/medicines/bulk-upload`, {
                 method: 'POST',
                 body: formData,
                 credentials: 'include',

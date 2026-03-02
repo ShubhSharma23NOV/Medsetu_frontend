@@ -13,6 +13,9 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+
+// Backend base URL for static files (without /api)
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:3001';
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 import Image from "next/image";
@@ -121,7 +124,7 @@ export default function PrescriptionsPage() {
                                     </div>
                                 ) : (
                                     <Image
-                                        src={`http://localhost:3001${rx.imageUrl}`}
+                                        src={`${BACKEND_URL}${rx.imageUrl}`}
                                         alt="Prescription"
                                         fill
                                         className="object-cover group-hover:scale-105 transition-transform duration-500"
@@ -152,14 +155,14 @@ export default function PrescriptionsPage() {
                                                 <div className="flex-1 relative bg-black flex items-center justify-center p-4">
                                                     {rx.imageUrl.endsWith('.pdf') ? (
                                                         <iframe
-                                                            src={`http://localhost:3001${rx.imageUrl}`}
+                                                            src={`${BACKEND_URL}${rx.imageUrl}`}
                                                             className="w-full h-full"
                                                             title="Prescription PDF"
                                                         />
                                                     ) : (
                                                         <div className="relative w-full h-full max-h-[80vh]">
                                                             <Image 
-                                                                src={`http://localhost:3001${rx.imageUrl}`} 
+                                                                src={`${BACKEND_URL}${rx.imageUrl}`} 
                                                                 alt="Full Rx" 
                                                                 fill 
                                                                 className="object-contain"

@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Upload, FileText, AlertTriangle, X } from "lucide-react";
 import { toast } from "sonner";
+import { API_BASE_URL } from "@/lib/api-config";
 
 interface PrescriptionRequiredModalProps {
     isOpen: boolean;
@@ -88,7 +89,7 @@ export function PrescriptionRequiredModal({
             }
             
             // Upload prescription to backend
-            const response = await fetch('http://localhost:3001/api/prescriptions/upload', {
+            const response = await fetch(`${API_BASE_URL}/prescriptions/upload`, {
                 method: 'POST',
                 body: formData,
                 headers: {

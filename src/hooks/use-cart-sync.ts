@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useCartStore } from '@/lib/cart-store';
 import { useAuthStore } from '@/lib/auth-store';
+import { API_BASE_URL } from '@/lib/api-config';
 
 /**
  * Hook to sync cart with backend (debounced)
@@ -33,7 +34,7 @@ export function useCartSync() {
         const token = localStorage.getItem('auth-token');
         if (!token) return;
 
-        await fetch('http://localhost:3001/api/cart/sync', {
+        await fetch(`${API_BASE_URL}/cart/sync`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

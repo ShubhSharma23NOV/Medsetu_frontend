@@ -3,6 +3,8 @@
  * Handles payment gateway integration for online payments
  */
 
+import { API_BASE_URL } from './api-config';
+
 // Razorpay script loader
 export const loadRazorpayScript = (): Promise<boolean> => {
   return new Promise((resolve) => {
@@ -67,7 +69,7 @@ export const createRazorpayOrder = async (
   amount: number,
   token: string
 ): Promise<any> => {
-  const response = await fetch('http://localhost:3001/api/payment/create-order', {
+  const response = await fetch(`${API_BASE_URL}/payment/create-order`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -89,7 +91,7 @@ export const verifyRazorpayPayment = async (
   paymentData: RazorpayResponse,
   token: string
 ): Promise<boolean> => {
-  const response = await fetch('http://localhost:3001/api/payment/verify', {
+  const response = await fetch(`${API_BASE_URL}/payment/verify`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -112,7 +114,7 @@ export const handlePaymentFailure = async (
   reason: string,
   token: string
 ): Promise<void> => {
-  await fetch('http://localhost:3001/api/payment/failure', {
+  await fetch(`${API_BASE_URL}/payment/failure`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
