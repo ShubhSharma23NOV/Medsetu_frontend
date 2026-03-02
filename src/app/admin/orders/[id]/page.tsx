@@ -170,8 +170,8 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                         <Card className="p-6 rounded-3xl border-slate-800 bg-slate-900">
                             <h2 className="text-xl font-black text-white mb-4">Order Items</h2>
                             <div className="space-y-4">
-                                {order.orderItems && order.orderItems.length > 0 ? (
-                                    order.orderItems.map((item: any) => (
+                                {order.OrderItems && order.OrderItems.length > 0 ? (
+                                    order.OrderItems.map((item: any) => (
                                         <div key={item.id} className="flex items-center justify-between p-4 rounded-2xl bg-white border border-slate-200">
                                             <div className="flex items-center gap-4">
                                                 <div className="h-12 w-12 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center">
@@ -237,28 +237,6 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                                     <p className="text-xs text-slate-400 uppercase tracking-wide font-bold">Name</p>
                                     <p className="font-bold text-white">{order.customerName}</p>
                                 </div>
-                                {order.customer?.user?.email && (
-                                    <div>
-                                        <p className="text-xs text-slate-400 uppercase tracking-wide font-bold">Email</p>
-                                        <p className="font-medium text-slate-300 break-all">{order.customer.user.email}</p>
-                                    </div>
-                                )}
-                                {order.customer?.phone && (
-                                    <div>
-                                        <p className="text-xs text-slate-400 uppercase tracking-wide font-bold">Phone</p>
-                                        <div className="flex items-center gap-2">
-                                            <p className="font-bold text-white">{order.customer.phone}</p>
-                                            <Button
-                                                size="sm"
-                                                variant="outline"
-                                                className="rounded-lg h-8 border-slate-700 text-white hover:bg-slate-800"
-                                                onClick={() => window.open(`tel:${order.customer.phone}`)}
-                                            >
-                                                <Phone className="h-3 w-3 mr-1" /> Call
-                                            </Button>
-                                        </div>
-                                    </div>
-                                )}
                             </div>
                         </Card>
 

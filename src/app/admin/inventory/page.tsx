@@ -344,7 +344,7 @@ export default function InventoryPage() {
             description: medicine.description || "",
             brand: medicine.brand || "",
             dosage: medicine.dosage || "",
-            quantity: medicine.quantity?.toString() || "0"
+            quantity: "0"
         });
         setIsAddDialogOpen(true);
     };
@@ -370,7 +370,11 @@ export default function InventoryPage() {
             price: "",
             category: "",
             inStock: true,
-            rxRequired: false
+            rxRequired: false,
+            description: "",
+            brand: "",
+            dosage: "",
+            quantity: "0"
         });
         setEditingMedicine(null);
     };

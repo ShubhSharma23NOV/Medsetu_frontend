@@ -60,21 +60,20 @@ function UserOrderDetailContent({ params }: { params: Promise<{ id: string }> })
     };
 
     const handleReorder = () => {
-        if (!order?.orderItems) return;
+        if (!order?.OrderItems) return;
         
-        order.orderItems.forEach((item: any) => {
+        order.OrderItems.forEach((item: any) => {
             addItem({
                 id: item.medicineId,
                 name: item.name,
                 price: item.price,
-                quantity: item.quantity,
                 rxRequired: item.rxRequired,
                 inStock: true,
             });
         });
         
         toast.success("Items added to cart", {
-            description: `${order.orderItems.length} items added to your cart`
+            description: `${order.OrderItems.length} items added to your cart`
         });
         
         router.push('/cart');
@@ -235,8 +234,8 @@ function UserOrderDetailContent({ params }: { params: Promise<{ id: string }> })
                         <Card className="p-6 rounded-2xl border-slate-200">
                             <h2 className="text-xl font-black text-slate-900 mb-4">Order Items</h2>
                             <div className="space-y-4">
-                                {order.orderItems && order.orderItems.length > 0 ? (
-                                    order.orderItems.map((item: any) => (
+                                {order.OrderItems && order.OrderItems.length > 0 ? (
+                                    order.OrderItems.map((item: any) => (
                                         <div key={item.id} className="flex items-center gap-4 p-4 rounded-xl bg-slate-50 border border-slate-100">
                                             <div className="h-16 w-16 rounded-xl bg-white border border-slate-100 flex items-center justify-center">
                                                 <Pill className="h-8 w-8 text-primary" />

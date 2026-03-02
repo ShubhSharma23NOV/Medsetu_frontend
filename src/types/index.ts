@@ -134,7 +134,6 @@ export interface AdminDashboardStats {
 
 export interface AdminOrder extends Order {
     user: User;
-    store?: Store;
 }
 
 export interface AdminUser extends User {
@@ -170,7 +169,6 @@ export interface Store {
 }
 
 export interface StoreOrder extends Order {
-    store: Store;
 }
 
 export interface StoreStats {

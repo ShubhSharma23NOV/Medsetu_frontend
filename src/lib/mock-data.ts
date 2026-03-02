@@ -8,9 +8,8 @@ export const MOCK_MEDICINES: Medicine[] = [
         category: "Antibiotics",
         price: 12.50,
         description: "Broad-spectrum antibiotic used to treat various bacterial infections.",
-        rating: 4.8,
-        stock: 50,
-        requiresPrescription: true,
+        inStock: true,
+        rxRequired: true,
     },
     {
         id: "2",
@@ -19,9 +18,8 @@ export const MOCK_MEDICINES: Medicine[] = [
         category: "Pain Relief",
         price: 5.99,
         description: "Relief from headache, migraine, backache, toothache and rheumatic pain.",
-        rating: 4.9,
-        stock: 100,
-        requiresPrescription: false,
+        inStock: true,
+        rxRequired: false,
     },
     {
         id: "3",
@@ -30,9 +28,8 @@ export const MOCK_MEDICINES: Medicine[] = [
         category: "Wellness",
         price: 18.25,
         description: "High-potency vitamin D supplement for bone and immune support.",
-        rating: 4.7,
-        stock: 75,
-        requiresPrescription: false,
+        inStock: true,
+        rxRequired: false,
     },
     {
         id: "4",
@@ -41,9 +38,8 @@ export const MOCK_MEDICINES: Medicine[] = [
         category: "Diabetes",
         price: 15.75,
         description: "Medication used to treat type 2 diabetes by controlling blood sugar levels.",
-        rating: 4.8,
-        stock: 60,
-        requiresPrescription: true,
+        inStock: true,
+        rxRequired: true,
     },
     {
         id: "5",
@@ -52,8 +48,7 @@ export const MOCK_MEDICINES: Medicine[] = [
         category: "Allergy",
         price: 9.99,
         description: "Non-drowsy antihistamine for relief of hay fever and allergy symptoms.",
-        rating: 4.6,
-        stock: 120,
-        requiresPrescription: false,
+        inStock: true,
+        rxRequired: false,
     }
 ];
