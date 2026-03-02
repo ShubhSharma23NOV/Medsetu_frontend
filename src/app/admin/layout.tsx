@@ -3,6 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
     LayoutDashboard,
     Package,
@@ -145,9 +146,7 @@ export default function AdminLayout({
                         {/* Brand */}
                         <div className="h-24 flex items-center px-6 shrink-0">
                             <div className={`flex items-center gap-3 ${!sidebarOpen && 'justify-center w-full'}`}>
-                                <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center text-white shrink-0 shadow-lg shadow-primary/20">
-                                    <Pill className="h-6 w-6" />
-                                </div>
+                                <Image src="/medsetu-logo.jpeg" alt="MedSetu Logo" width={40} height={40} className="rounded-xl shadow-lg shrink-0" />
                                 {sidebarOpen && (
                                     <motion.div
                                         initial={{ opacity: 0 }}

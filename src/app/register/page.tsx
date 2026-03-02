@@ -8,6 +8,7 @@ import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
+import Image from "next/image";
 import { Pill, ShieldCheck, Activity, Loader2, AlertCircle, ArrowRight } from "lucide-react";
 import { authService } from "@/lib/auth-service";
 import { useAuthStore } from "@/lib/auth-store";
@@ -113,7 +114,7 @@ export default function RegisterPage() {
 
                     <div className="relative z-10">
                         <Link href="/" className="inline-flex items-center gap-2 group">
-                            <Pill className="h-8 w-8 text-primary" />
+                            <Image src="/medsetu-logo.jpeg" alt="MedSetu Logo" width={32} height={32} className="rounded-lg" />
                             <span className="text-2xl font-bold tracking-tight text-white">
                                 Med<span className="text-primary font-bold">Setu</span>
                             </span>

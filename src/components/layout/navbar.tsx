@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Pill, ShoppingCart, User, Menu, LogOut, Settings } from "lucide-react";
+import Image from "next/image";
+import { ShoppingCart, User, Menu, LogOut, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/lib/cart-store";
 import { useAuthStore } from "@/lib/auth-store";
@@ -65,7 +66,7 @@ export default function Navbar() {
             <div className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-slate-200 h-16 flex items-center">
                 <nav className="w-full max-w-7xl mx-auto px-4 md:px-8 flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                        <Pill className="h-6 w-6 text-primary" />
+                        <Image src="/medsetu-logo.jpeg" alt="MedSetu Logo" width={40} height={40} className="rounded-lg" />
                         <span className="text-xl font-bold tracking-tight text-slate-900 hidden sm:block">
                             Med<span className="text-primary font-bold">Setu</span>
                         </span>
@@ -84,7 +85,7 @@ export default function Navbar() {
                     {/* Left Section: Logo */}
                     <div className="flex items-center gap-4">
                         <Link href="/" className="flex items-center gap-2 group shrink-0">
-                            <Pill className="h-6 w-6 text-primary" />
+                            <Image src="/medsetu-logo.jpeg" alt="MedSetu Logo" width={40} height={40} className="rounded-lg" />
                             <span className="text-xl font-bold tracking-tight text-slate-900 hidden sm:block">
                                 Med<span className="text-primary font-bold">Setu</span>
                             </span>

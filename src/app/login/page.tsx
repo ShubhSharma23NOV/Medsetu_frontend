@@ -8,6 +8,7 @@ import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
+import Image from "next/image";
 import { Pill, Loader2, AlertCircle, ArrowRight, User, Store, ShieldAlert } from "lucide-react";
 import { authService } from "@/lib/auth-service";
 import { useAuthStore } from "@/lib/auth-store";
@@ -151,12 +152,7 @@ export default function LoginPage() {
                     <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-primary/10 rounded-full blur-3xl text-primary" />
 
                     <Link href="/" className="relative z-10 flex items-center gap-2 group">
-                        <motion.div
-                            whileHover={{ rotate: 180 }}
-                            className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center text-white"
-                        >
-                            <Pill className="h-6 w-6" />
-                        </motion.div>
+                        <Image src="/medsetu-logo.jpeg" alt="MedSetu Logo" width={40} height={40} className="rounded-xl shadow-lg" />
                         <span className="text-2xl font-black tracking-tight text-white">
                             Med<span className="text-primary italic">Setu</span>
                         </span>

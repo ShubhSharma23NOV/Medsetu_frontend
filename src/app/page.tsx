@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight, Pill, ShieldCheck, Truck, Activity, HeartPulse, Microscope } from "lucide-react";
 import IndorePride from "@/components/special/IndorePride";
 
@@ -89,7 +90,7 @@ export default function Home() {
                 LICENSED DIGITAL PHARMACY
               </div>
               <div className="inline-flex items-center gap-2 bg-white px-5 py-2 rounded-full shadow-md border border-slate-100">
-                <Pill className="h-5 w-5 text-primary" />
+                <Image src="/medsetu-logo.jpeg" alt="MedSetu Logo" width={20} height={20} className="rounded" />
                 <span className="text-xl font-black tracking-tight text-slate-900">
                   Med<span className="text-primary italic">Setu</span>
                 </span>
@@ -213,9 +214,9 @@ export default function Home() {
                 {/* Center Section - Main Content */}
                 <div className="flex flex-col items-center gap-6 text-center">
                   <div
-                    className="h-24 w-24 rounded-2xl bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/20"
+                    className="h-24 w-24 rounded-2xl bg-white flex items-center justify-center shadow-lg border border-slate-100"
                   >
-                    <Pill size={48} />
+                    <Image src="/medsetu-logo.jpeg" alt="MedSetu Logo" width={64} height={64} className="rounded-xl" />
                   </div>
                   <div className="space-y-3">
                     <h3 className="text-2xl font-bold text-slate-900 tracking-tight">Genuine Care</h3>

@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Pill, Mail, Phone, MapPin, Facebook, Twitter, Instagram, ArrowRight, ShieldCheck, Truck, Clock, MessageCircle, Smartphone } from "lucide-react";
+import Image from "next/image";
+import { Mail, Phone, MapPin, Facebook, Twitter, Instagram, ArrowRight, ShieldCheck, Truck, Clock, MessageCircle, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -38,9 +39,7 @@ export default function Footer() {
                     {/* Brand Column */}
                     <div className="lg:col-span-4 space-y-6">
                         <Link href="/" className="flex items-center gap-2 group">
-                            <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/20 group-hover:rotate-12 transition-transform">
-                                <Pill className="h-6 w-6" />
-                            </div>
+                            <Image src="/medsetu-logo.jpeg" alt="MedSetu Logo" width={40} height={40} className="rounded-xl shadow-lg group-hover:scale-110 transition-transform" />
                             <span className="text-2xl font-black tracking-tight text-white">
                                 Med<span className="text-primary italic">Setu</span>
                             </span>
