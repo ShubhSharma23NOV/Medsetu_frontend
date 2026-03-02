@@ -1,0 +1,11 @@
+name,price,category,inStock,rxRequired,description,brand,dosage,quantity
+"Paracetamol 500mg",25.50,"Pain Relief",true,false,"Pain relief and fever reducer","Generic","500mg",100
+"Amoxicillin 250mg",45.00,"Antibiotic",true,true,"Antibiotic for bacterial infections","Generic","250mg",50
+"Vitamin D3 2000IU",180.25,"Vitamins",true,false,"Vitamin D supplement for bone health","HealthKart","2000 IU",75
+"Metformin 500mg",85.75,"Diabetes Care",true,true,"Blood sugar control medication","Cipla","500mg",60
+"Cetirizine 10mg",35.99,"Allergy",true,false,"Antihistamine for allergy relief","Sun Pharma","10mg",120
+"Aspirin 75mg",15.50,"Heart Care",true,false,"Blood thinner for heart health","Bayer","75mg",90
+"Omeprazole 20mg",65.00,"Digestive",true,true,"Reduces stomach acid production","Dr. Reddy's","20mg",40
+"Ibuprofen 400mg",28.75,"Pain Relief",true,false,"Anti-inflammatory pain reliever","Generic","400mg",150
+"Crocin Advance",22.00,"Fever",true,false,"Fast relief from fever and pain","GSK","500mg",200
+"Azithromycin 500mg",120.00,"Antibiotic",true,true,"Antibiotic for respiratory infections","Cipla","500mg",30
