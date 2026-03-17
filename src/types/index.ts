@@ -3,9 +3,11 @@ export interface Medicine {
     name: string;
     brand?: string;
     category?: string;
+    healthCondition?: string;
     price: number;
     description?: string;
     image?: string;
+    imageUrl?: string;
     rating?: number;
     stock?: number;
     inStock: boolean;
@@ -13,6 +15,7 @@ export interface Medicine {
     requiresPrescription?: boolean; // Alias for rxRequired
     dosage?: string;
     sideEffects?: string[];
+    expiryDate?: string;
 }
 
 export type Category = "Pain Relief" | "Antibiotic" | "Vitamins" | "Digestive" | "Allergy" | "Cold & Cough" | "Diabetes Care" | "Heart Care" | "Skin Care" | "Women Care" | "Men Care" | "Fever" | "General";
@@ -35,9 +38,22 @@ export interface Order {
     amount: number;
     status: "NEW" | "PACKING" | "READY" | "DELIVERED" | "CANCELLED";
     address?: string;
+    addressId?: number; // New field for structured addresses
     type: "DELIVERY" | "PICKUP";
     createdAt: string;
     OrderItems?: OrderItem[];
+    deliveryAddress?: {
+        id: number;
+        title: string;
+        fullName: string;
+        phone: string;
+        addressLine: string;
+        landmark?: string;
+        city: string;
+        state: string;
+        pincode: string;
+        isDefault: boolean;
+    };
     store?: {
         id: number;
         name: string;
@@ -66,7 +82,8 @@ export interface CreateOrderRequest {
     customerName: string;
     items: CartItem[];  // Changed from number to CartItem[]
     amount: number;
-    address: string;    // Made required
+    address?: string;   // Made optional since we can use addressId
+    addressId?: number; // New field for structured addresses
     type: "DELIVERY" | "PICKUP";
     storeId?: number;
     prescriptionId?: string;
@@ -151,32 +168,74 @@ export interface AdminMedicine extends Medicine {
     lowStockAlert: boolean;
 }
 
-// Store related types
-export interface Store {
-    id: string;
-    name: string;
-    description: string;
-    address: Address;
-    phone: string;
-    email: string;
-    license: string;
-    ownerId: string;
-    isActive: boolean;
-    rating: number;
-    totalOrders: number;
+// Wishlist types
+export interface WishlistItem {
+    id: number;
+    userId: number;
+    medicineId: number;
+    createdAt: string;
+    medicine: Medicine;
+}
+
+// Notification types
+export interface Notification {
+    id: number;
+    userId: number;
+    type: 'ORDER' | 'PRESCRIPTION' | 'OFFER' | 'SYSTEM';
+    title: string;
+    message: string;
+    orderId?: number;
+    prescriptionId?: number;
+    isRead: boolean;
+    createdAt: string;
+    order?: {
+        id: number;
+        status: string;
+        amount: number;
+    };
+    prescription?: {
+        id: number;
+        status: string;
+    };
+}
+
+// User preferences types
+export interface UserPreferences {
+    id: number;
+    userId: number;
+    theme: 'light' | 'dark' | 'system';
+    language: string;
+    orderNotifications: boolean;
+    prescriptionNotifications: boolean;
+    offerNotifications: boolean;
+    emailNotifications: boolean;
+    smsNotifications: boolean;
     createdAt: string;
     updatedAt: string;
 }
 
-export interface StoreOrder extends Order {
-}
-
-export interface StoreStats {
-    totalOrders: number;
-    totalRevenue: number;
-    pendingOrders: number;
-    completedOrders: number;
-    averageOrderValue: number;
-    monthlyRevenue: number[];
-    topMedicines: { medicine: Medicine; sales: number }[];
+// Order tracking types
+export interface OrderTracking {
+    id: number;
+    orderId: number;
+    status: string;
+    currentLocation?: { lat: number; lng: number };
+    deliveryPartnerName?: string;
+    deliveryPartnerPhone?: string;
+    vehicleNumber?: string;
+    estimatedDeliveryTime?: string;
+    timeline: Array<{
+        status: string;
+        timestamp: string;
+        location: string;
+    }>;
+    createdAt: string;
+    updatedAt: string;
+    order: {
+        id: number;
+        status: string;
+        type: string;
+        address?: string;
+        createdAt: string;
+    };
 }

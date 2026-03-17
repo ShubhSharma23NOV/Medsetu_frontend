@@ -413,6 +413,16 @@ function ProfileContent() {
                                     <Button variant="outline" asChild className="rounded-xl h-12 font-bold">
                                         <a href="/prescriptions">My Prescriptions</a>
                                     </Button>
+                                    {currentUser.role === 'USER' && (
+                                        <>
+                                            <Button variant="outline" asChild className="rounded-xl h-12 font-bold">
+                                                <a href="/profile/manage-addresses">Manage Addresses</a>
+                                            </Button>
+                                            <Button variant="outline" asChild className="rounded-xl h-12 font-bold">
+                                                <a href="/nearby-chemist">Find Nearby Stores</a>
+                                            </Button>
+                                        </>
+                                    )}
                                     {currentUser.role === 'STORE' && (
                                         <Button variant="outline" asChild className="rounded-xl h-12 font-bold">
                                             <a href="/admin">Medical Store Dashboard</a>

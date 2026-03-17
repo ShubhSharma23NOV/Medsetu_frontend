@@ -134,15 +134,15 @@ export default function SettingsPage() {
             <div className="p-8 overflow-y-auto">
                 <form onSubmit={handleSubmit} className="max-w-4xl space-y-6">
                     {/* Store Information */}
-                    <Card className="p-6 rounded-3xl border-slate-100">
+                    <Card className="p-6 rounded-3xl border-slate-700 bg-slate-900">
                         <div className="flex items-center gap-3 mb-6">
                             <Store className="h-5 w-5 text-primary" />
-                            <h2 className="text-xl font-black text-slate-900">Store Information</h2>
+                            <h2 className="text-xl font-black text-white">Store Information</h2>
                         </div>
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
-                                <Label htmlFor="storeName" className="text-sm font-bold text-slate-700">
+                                <Label htmlFor="storeName" className="text-sm font-bold text-white">
                                     Store Name
                                 </Label>
                                 <Input
@@ -155,7 +155,7 @@ export default function SettingsPage() {
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="ownerName" className="text-sm font-bold text-slate-700">
+                                <Label htmlFor="ownerName" className="text-sm font-bold text-white">
                                     Owner Name
                                 </Label>
                                 <Input
@@ -168,7 +168,7 @@ export default function SettingsPage() {
                             </div>
 
                             <div className="space-y-2 md:col-span-2">
-                                <Label htmlFor="storeAddress" className="text-sm font-bold text-slate-700">
+                                <Label htmlFor="storeAddress" className="text-sm font-bold text-white">
                                     Store Address
                                 </Label>
                                 <Input
@@ -181,7 +181,7 @@ export default function SettingsPage() {
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="storePhone" className="text-sm font-bold text-slate-700">
+                                <Label htmlFor="storePhone" className="text-sm font-bold text-white">
                                     Phone Number
                                 </Label>
                                 <Input
@@ -194,7 +194,7 @@ export default function SettingsPage() {
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="licenseNumber" className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                                <Label htmlFor="licenseNumber" className="text-sm font-bold text-white flex items-center gap-2">
                                     License Number
                                     <Badge variant="outline" className="text-xs">Read-only</Badge>
                                 </Label>
@@ -205,16 +205,16 @@ export default function SettingsPage() {
                                     className="h-12 rounded-xl border-slate-200 bg-slate-50 cursor-not-allowed"
                                     placeholder="License number"
                                 />
-                                <p className="text-xs text-slate-500">License number cannot be modified</p>
+                                <p className="text-xs text-slate-400">License number cannot be modified</p>
                             </div>
                         </div>
                     </Card>
 
                     {/* Serviceable Pincodes */}
-                    <Card className="p-6 rounded-3xl border-slate-100">
+                    <Card className="p-6 rounded-3xl border-slate-700 bg-slate-900">
                         <div className="flex items-center gap-3 mb-6">
                             <MapPin className="h-5 w-5 text-primary" />
-                            <h2 className="text-xl font-black text-slate-900">Serviceable Pincodes</h2>
+                            <h2 className="text-xl font-black text-white">Serviceable Pincodes</h2>
                         </div>
 
                         <div className="space-y-4">
@@ -222,7 +222,7 @@ export default function SettingsPage() {
                                 <Input
                                     value={newPincode}
                                     onChange={(e) => setNewPincode(e.target.value)}
-                                    className="h-12 rounded-xl border-slate-200"
+                                    className="h-12 rounded-xl border-slate-700 bg-slate-800 text-white"
                                     placeholder="Enter 6-digit pincode"
                                     maxLength={6}
                                     onKeyPress={(e) => {
@@ -267,11 +267,11 @@ export default function SettingsPage() {
                     </Card>
 
                     {/* Store Status */}
-                    <Card className="p-6 rounded-3xl border-slate-100">
+                    <Card className="p-6 rounded-3xl border-slate-700 bg-slate-900">
                         <div className="flex items-center justify-between">
                             <div>
-                                <h2 className="text-xl font-black text-slate-900 mb-1">Store Status</h2>
-                                <p className="text-sm text-slate-500">
+                                <h2 className="text-xl font-black text-white mb-1">Store Status</h2>
+                                <p className="text-sm text-slate-400">
                                     {formData.isActive 
                                         ? "Your store is currently accepting orders" 
                                         : "Your store is currently closed for orders"}

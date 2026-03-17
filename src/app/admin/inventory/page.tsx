@@ -50,6 +50,82 @@ const categories = [
     "Other"
 ];
 
+const healthConditions = [
+    "Diabetes Care",
+    "Cardiac Care",
+    "Stomach Care",
+    "Pain Relief",
+    "Liver Care",
+    "Oral Care",
+    "Respiratory",
+    "Sexual Health",
+    "Elderly Care",
+    "Cold & Immunity",
+    "General Health"
+];
+
+// Download template function (shared)
+const downloadTemplate = () => {
+    // Create sample Excel template with all required fields
+    const sampleData = [
+        { 
+            name: "Paracetamol 500mg", 
+            price: 25.50, 
+            category: "Pain Relief", 
+            healthCondition: "Pain Relief",
+            brand: "Cipla",
+            dosage: "500mg",
+            expiryDate: "2026-12-31",
+            description: "Pain reliever and fever reducer",
+            quantity: 100,
+            inStock: true, 
+            rxRequired: false 
+        },
+        { 
+            name: "Amoxicillin 250mg", 
+            price: 45.00, 
+            category: "Antibiotics", 
+            healthCondition: "General Health",
+            brand: "Sun Pharma",
+            dosage: "250mg",
+            expiryDate: "2027-06-30",
+            description: "Antibiotic for bacterial infections",
+            quantity: 50,
+            inStock: true, 
+            rxRequired: true 
+        },
+        { 
+            name: "Vitamin D3 2000IU", 
+            price: 180.25, 
+            category: "Vitamins", 
+            healthCondition: "General Health",
+            brand: "HealthKart",
+            dosage: "2000IU",
+            expiryDate: "2028-03-15",
+            description: "Vitamin D supplement",
+            quantity: 200,
+            inStock: true, 
+            rxRequired: false 
+        }
+    ];
+
+    const csvContent = "data:text/csv;charset=utf-8," 
+        + "name,price,category,healthCondition,brand,dosage,expiryDate,description,quantity,inStock,rxRequired\n"
+        + sampleData.map(row => `"${row.name}",${row.price},"${row.category}","${row.healthCondition}","${row.brand}","${row.dosage}","${row.expiryDate}","${row.description}",${row.quantity},${row.inStock},${row.rxRequired}`).join("\n");
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "medicine_template.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    toast.success("Template downloaded", {
+        description: "Use this template to format your medicine data."
+    });
+};
+
 // Bulk Upload Dialog Component
 function BulkUploadDialog({ onUploadSuccess }: { onUploadSuccess: () => void }) {
     const [isOpen, setIsOpen] = useState(false);
@@ -109,31 +185,6 @@ function BulkUploadDialog({ onUploadSuccess }: { onUploadSuccess: () => void }) 
         }
     };
 
-    const downloadTemplate = () => {
-        // Create sample Excel template
-        const sampleData = [
-            { name: "Paracetamol 500mg", price: 25.50, category: "Pain Relief", inStock: true, rxRequired: false },
-            { name: "Amoxicillin 250mg", price: 45.00, category: "Antibiotics", inStock: true, rxRequired: true },
-            { name: "Vitamin D3 2000IU", price: 180.25, category: "Vitamins", inStock: true, rxRequired: false }
-        ];
-
-        const csvContent = "data:text/csv;charset=utf-8," 
-            + "name,price,category,inStock,rxRequired\n"
-            + sampleData.map(row => `"${row.name}",${row.price},"${row.category}",${row.inStock},${row.rxRequired}`).join("\n");
-
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "medicine_template.csv");
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
-        toast.success("Template downloaded", {
-            description: "Use this template to format your medicine data."
-        });
-    };
-
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
@@ -156,8 +207,8 @@ function BulkUploadDialog({ onUploadSuccess }: { onUploadSuccess: () => void }) 
                         <h4 className="font-bold text-blue-900 mb-2">Upload Instructions:</h4>
                         <ul className="text-sm text-blue-700 space-y-1">
                             <li>• Upload Excel (.xlsx, .xls) or CSV files</li>
-                            <li>• Required columns: name, price</li>
-                            <li>• Optional: category, inStock, rxRequired</li>
+                            <li>• Required: name, price, category, healthCondition, brand, dosage, expiryDate</li>
+                            <li>• Optional: description, quantity, inStock, rxRequired</li>
                             <li>• Download template for correct format</li>
                         </ul>
                     </div>
@@ -241,12 +292,14 @@ export default function InventoryPage() {
         name: "",
         price: "",
         category: "",
+        healthCondition: "",
         inStock: true,
         rxRequired: false,
         description: "",
         brand: "",
         dosage: "",
-        quantity: "0"
+        quantity: "0",
+        expiryDate: ""
     });
 
     const { data: medicines = [], isLoading, refetch } = useStoreInventory(searchTerm, categoryFilter === "all" ? undefined : categoryFilter);
@@ -257,29 +310,6 @@ export default function InventoryPage() {
     // Filter medicines based on search and category (filtering is now done on backend)
     const filteredMedicines = medicines;
 
-    const downloadTemplate = () => {
-        // Create sample CSV template
-        const sampleData = [
-            { name: "Paracetamol 500mg", price: 25.50, category: "Pain Relief", inStock: true, rxRequired: false },
-            { name: "Amoxicillin 250mg", price: 45.00, category: "Antibiotics", inStock: true, rxRequired: true },
-            { name: "Vitamin D3 2000IU", price: 180.25, category: "Vitamins", inStock: true, rxRequired: false }
-        ];
-
-        const csvContent = "data:text/csv;charset=utf-8," 
-            + "name,price,category,inStock,rxRequired\n"
-            + sampleData.map(row => `"${row.name}",${row.price},"${row.category}",${row.inStock},${row.rxRequired}`).join("\n");
-
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "medicine_template.csv");
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        toast.success("Template downloaded successfully!");
-    };
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         
@@ -288,12 +318,14 @@ export default function InventoryPage() {
                 name: formData.name,
                 price: parseFloat(formData.price),
                 category: formData.category,
+                healthCondition: formData.healthCondition,
                 inStock: formData.inStock,
                 rxRequired: formData.rxRequired,
                 description: formData.description,
                 brand: formData.brand,
                 dosage: formData.dosage,
-                quantity: parseInt(formData.quantity) || 0
+                quantity: parseInt(formData.quantity) || 0,
+                expiryDate: new Date(formData.expiryDate).toISOString()
             };
 
             if (editingMedicine) {
@@ -316,12 +348,14 @@ export default function InventoryPage() {
                 name: "",
                 price: "",
                 category: "",
+                healthCondition: "",
                 inStock: true,
                 rxRequired: false,
                 description: "",
                 brand: "",
                 dosage: "",
-                quantity: "0"
+                quantity: "0",
+                expiryDate: ""
             });
                 
             setIsAddDialogOpen(false);
@@ -339,12 +373,14 @@ export default function InventoryPage() {
             name: medicine.name,
             price: medicine.price.toString(),
             category: medicine.category || "",
+            healthCondition: medicine.healthCondition || "",
             inStock: medicine.inStock,
             rxRequired: medicine.rxRequired,
             description: medicine.description || "",
             brand: medicine.brand || "",
             dosage: medicine.dosage || "",
-            quantity: "0"
+            quantity: "0",
+            expiryDate: medicine.expiryDate ? new Date(medicine.expiryDate).toISOString().split('T')[0] : ""
         });
         setIsAddDialogOpen(true);
     };
@@ -369,12 +405,14 @@ export default function InventoryPage() {
             name: "",
             price: "",
             category: "",
+            healthCondition: "",
             inStock: true,
             rxRequired: false,
             description: "",
             brand: "",
             dosage: "",
-            quantity: "0"
+            quantity: "0",
+            expiryDate: ""
         });
         setEditingMedicine(null);
     };
@@ -434,6 +472,7 @@ export default function InventoryPage() {
                                             value={formData.brand}
                                             onChange={(e) => setFormData({...formData, brand: e.target.value})}
                                             className="h-12 rounded-xl"
+                                            required
                                         />
                                     </div>
 
@@ -444,6 +483,7 @@ export default function InventoryPage() {
                                             value={formData.dosage}
                                             onChange={(e) => setFormData({...formData, dosage: e.target.value})}
                                             className="h-12 rounded-xl"
+                                            required
                                         />
                                     </div>
 
@@ -471,17 +511,46 @@ export default function InventoryPage() {
                                         />
                                     </div>
 
+                                    <div className="space-y-2">
+                                        <Label className="text-sm font-bold text-slate-700">Expiry Date</Label>
+                                        <Input
+                                            type="date"
+                                            value={formData.expiryDate}
+                                            onChange={(e) => setFormData({...formData, expiryDate: e.target.value})}
+                                            className="h-12 rounded-xl"
+                                            required
+                                        />
+                                    </div>
+
                                     <div className="space-y-2 col-span-2">
                                         <Label className="text-sm font-bold text-slate-700">Category</Label>
                                         <select
                                             value={formData.category}
                                             onChange={(e) => setFormData({...formData, category: e.target.value})}
                                             className="w-full h-12 rounded-xl bg-slate-50 border-none px-4 text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
+                                            required
                                         >
                                             <option value="" className="text-slate-500">Select category</option>
                                             {categories.map((cat) => (
                                                 <option key={cat} value={cat} className="text-slate-900">
                                                     {cat}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    <div className="space-y-2 col-span-2">
+                                        <Label className="text-sm font-bold text-slate-700">Health Condition</Label>
+                                        <select
+                                            value={formData.healthCondition}
+                                            onChange={(e) => setFormData({...formData, healthCondition: e.target.value})}
+                                            className="w-full h-12 rounded-xl bg-slate-50 border-none px-4 text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
+                                            required
+                                        >
+                                            <option value="" className="text-slate-500">Select health condition</option>
+                                            {healthConditions.map((condition) => (
+                                                <option key={condition} value={condition} className="text-slate-900">
+                                                    {condition}
                                                 </option>
                                             ))}
                                         </select>
@@ -542,11 +611,11 @@ export default function InventoryPage() {
             {/* Tabs for different views */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
                 <TabsList className="grid w-full grid-cols-2 lg:w-auto lg:grid-cols-2 h-12 rounded-2xl bg-slate-100 p-1">
-                    <TabsTrigger value="overview" className="rounded-xl font-bold data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                    <TabsTrigger value="overview" className="rounded-xl font-bold text-slate-700 data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm">
                         <BarChart3 className="h-4 w-4 mr-2" />
                         Overview & Alerts
                     </TabsTrigger>
-                    <TabsTrigger value="medicines" className="rounded-xl font-bold data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                    <TabsTrigger value="medicines" className="rounded-xl font-bold text-slate-700 data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm">
                         <Package className="h-4 w-4 mr-2" />
                         Medicine List
                     </TabsTrigger>
@@ -555,12 +624,12 @@ export default function InventoryPage() {
                 <TabsContent value="overview" className="space-y-6">
                     {/* Stats Cards */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <Card className="rounded-2xl border-slate-200">
+                        <Card className="rounded-2xl border-none bg-slate-900">
                             <CardContent className="p-6">
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <p className="text-sm font-medium text-slate-600">Total Medicines</p>
-                                        <p className="text-3xl font-black text-slate-900">
+                                        <p className="text-sm font-medium text-slate-400">Total Medicines</p>
+                                        <p className="text-3xl font-black text-white">
                                             {medicines.length}
                                         </p>
                                     </div>
@@ -571,12 +640,12 @@ export default function InventoryPage() {
                             </CardContent>
                         </Card>
 
-                        <Card className="rounded-2xl border-slate-200">
+                        <Card className="rounded-2xl border-none bg-slate-900">
                             <CardContent className="p-6">
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <p className="text-sm font-medium text-slate-600">In Stock</p>
-                                        <p className="text-3xl font-black text-green-600">
+                                        <p className="text-sm font-medium text-slate-400">In Stock</p>
+                                        <p className="text-3xl font-black text-green-500">
                                             {medicines.filter(m => m.inStock).length}
                                         </p>
                                         <p className="text-xs text-slate-500 mt-1">
@@ -590,12 +659,12 @@ export default function InventoryPage() {
                             </CardContent>
                         </Card>
 
-                        <Card className="rounded-2xl border-slate-200">
+                        <Card className="rounded-2xl border-none bg-slate-900">
                             <CardContent className="p-6">
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <p className="text-sm font-medium text-slate-600">Out of Stock</p>
-                                        <p className="text-3xl font-black text-orange-600">
+                                        <p className="text-sm font-medium text-slate-400">Out of Stock</p>
+                                        <p className="text-3xl font-black text-orange-500">
                                             {medicines.filter(m => !m.inStock).length}
                                         </p>
                                         <p className="text-xs text-slate-500 mt-1">Need restocking</p>
@@ -607,12 +676,12 @@ export default function InventoryPage() {
                             </CardContent>
                         </Card>
 
-                        <Card className="rounded-2xl border-slate-200">
+                        <Card className="rounded-2xl border-none bg-slate-900">
                             <CardContent className="p-6">
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <p className="text-sm font-medium text-slate-600">Rx Required</p>
-                                        <p className="text-3xl font-black text-purple-600">
+                                        <p className="text-sm font-medium text-slate-400">Rx Required</p>
+                                        <p className="text-3xl font-black text-purple-500">
                                             {medicines.filter(m => m.rxRequired).length}
                                         </p>
                                         <p className="text-xs text-slate-500 mt-1">Prescription needed</p>
@@ -626,9 +695,9 @@ export default function InventoryPage() {
                     </div>
 
                     {/* Category Breakdown */}
-                    <Card className="rounded-2xl border-slate-200">
-                        <CardHeader className="p-6 border-b border-slate-100">
-                            <CardTitle className="text-slate-900 font-black">Category Breakdown</CardTitle>
+                    <Card className="rounded-2xl border-none bg-slate-900">
+                        <CardHeader className="p-6 border-b border-slate-800">
+                            <CardTitle className="text-white font-black">Category Breakdown</CardTitle>
                         </CardHeader>
                         <CardContent className="p-6">
                             {medicines.length > 0 ? (
@@ -639,10 +708,10 @@ export default function InventoryPage() {
                                         return (
                                             <div key={category} className="space-y-2">
                                                 <div className="flex items-center justify-between">
-                                                    <span className="text-sm font-bold text-slate-900">{category}</span>
-                                                    <span className="text-sm text-slate-600">{count} medicines ({percentage}%)</span>
+                                                    <span className="text-sm font-bold text-white">{category}</span>
+                                                    <span className="text-sm text-slate-400">{count} medicines ({percentage}%)</span>
                                                 </div>
-                                                <div className="w-full bg-slate-100 rounded-full h-2">
+                                                <div className="w-full bg-slate-800 rounded-full h-2">
                                                     <div 
                                                         className="bg-primary h-2 rounded-full transition-all" 
                                                         style={{ width: `${percentage}%` }}
@@ -653,15 +722,15 @@ export default function InventoryPage() {
                                     })}
                                 </div>
                             ) : (
-                                <p className="text-center text-slate-500 py-8">No medicines added yet</p>
+                                <p className="text-center text-slate-400 py-8">No medicines added yet</p>
                             )}
                         </CardContent>
                     </Card>
 
                     {/* Quick Actions */}
-                    <Card className="rounded-2xl border-slate-200">
-                        <CardHeader className="p-6 border-b border-slate-100">
-                            <CardTitle className="text-slate-900 font-black">Quick Actions</CardTitle>
+                    <Card className="rounded-2xl border-none bg-slate-900">
+                        <CardHeader className="p-6 border-b border-slate-800">
+                            <CardTitle className="text-white font-black">Quick Actions</CardTitle>
                         </CardHeader>
                         <CardContent className="p-6">
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -675,7 +744,7 @@ export default function InventoryPage() {
                                 <Button 
                                     variant="outline"
                                     onClick={() => setActiveTab("medicines")}
-                                    className="rounded-xl h-12 font-bold"
+                                    className="rounded-xl h-12 font-bold border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800"
                                 >
                                     <Package className="h-4 w-4 mr-2" />
                                     View All Medicines
@@ -683,7 +752,7 @@ export default function InventoryPage() {
                                 <Button 
                                     variant="outline"
                                     onClick={downloadTemplate}
-                                    className="rounded-xl h-12 font-bold"
+                                    className="rounded-xl h-12 font-bold border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800"
                                 >
                                     <Download className="h-4 w-4 mr-2" />
                                     Download Template

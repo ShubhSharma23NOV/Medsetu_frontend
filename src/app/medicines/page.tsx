@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Filter, Search, ShoppingCart, Star, Loader2, Pill } from "lucide-react";
+import { Filter, Search, ShoppingCart, Star, Loader2, Pill, Syringe, Heart, Activity, Tablets, Droplet, Smile, Wind, Users, UserCircle, Snowflake } from "lucide-react";
 import { useMedicines } from "@/hooks/use-medicines";
 import { Category } from "@/types";
 import { useCartStore } from "@/lib/cart-store";
@@ -12,9 +13,19 @@ import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function MedicinesPage() {
+    const searchParams = useSearchParams();
     const [search, setSearch] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
     const [category, setCategory] = useState<Category | "All">("All");
+    const [healthCondition, setHealthCondition] = useState<string>("");
+
+    // Get health condition from URL
+    useEffect(() => {
+        const condition = searchParams.get('healthCondition');
+        if (condition) {
+            setHealthCondition(condition);
+        }
+    }, [searchParams]);
 
     // Debounce search input
     useEffect(() => {
@@ -27,6 +38,11 @@ export default function MedicinesPage() {
 
     const { data: medicines, isLoading, isError } = useMedicines(debouncedSearch, category === "All" ? undefined : category);
     const addItem = useCartStore((state) => state.addItem);
+
+    // Filter by health condition if set
+    const filteredMedicines = healthCondition 
+        ? medicines?.filter(med => med.healthCondition === healthCondition)
+        : medicines;
 
     const categories: (Category | "All")[] = ["All", "Pain Relief", "Antibiotic", "Vitamins", "Digestive", "Allergy", "Cold & Cough", "Diabetes Care"];
 
@@ -67,9 +83,14 @@ export default function MedicinesPage() {
                         >
                             Indore's Trusted Store
                         </motion.div>
-                        <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight">Our Medicine Shop</h1>
+                        <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight">
+                            {healthCondition ? healthCondition : "Our Medicine Shop"}
+                        </h1>
                         <p className="text-slate-500 font-medium font-inter text-lg">
-                            Generic, Branded, and Ayurvedic medicines at the best prices in town.
+                            {healthCondition 
+                                ? `Find medicines for ${healthCondition.toLowerCase()} at the best prices.`
+                                : "Generic, Branded, and Ayurvedic medicines at the best prices in town."
+                            }
                         </p>
                     </div>
 
@@ -88,23 +109,89 @@ export default function MedicinesPage() {
                                 onChange={(e) => setSearch(e.target.value)}
                             />
                         </motion.div>
-                        <motion.div
-                            initial={{ x: 20, opacity: 0 }}
-                            animate={{ x: 0, opacity: 1 }}
-                            transition={{ delay: 0.3 }}
-                            className="flex gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide"
-                        >
-                            {categories.map((cat, i) => (
-                                <Button
-                                    key={cat}
-                                    variant={category === cat ? "default" : "outline"}
-                                    className={`rounded-2xl px-6 h-14 font-bold shrink-0 transition-all ${category === cat ? 'shadow-lg shadow-primary/25' : 'hover:bg-slate-50'}`}
-                                    onClick={() => setCategory(cat)}
+                        {healthCondition && (
+                            <motion.div
+                                initial={{ x: 20, opacity: 0 }}
+                                animate={{ x: 0, opacity: 1 }}
+                                transition={{ delay: 0.3 }}
+                                className="flex gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide"
+                            >
+                                {categories.map((cat, i) => (
+                                    <Button
+                                        key={cat}
+                                        variant={category === cat ? "default" : "outline"}
+                                        className={`rounded-2xl px-6 h-14 font-bold shrink-0 transition-all ${category === cat ? 'shadow-lg shadow-primary/25' : 'hover:bg-slate-50'}`}
+                                        onClick={() => setCategory(cat)}
+                                    >
+                                        {cat}
+                                    </Button>
+                                ))}
+                            </motion.div>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            {/* Browse by Health Conditions */}
+            <div className="bg-slate-50 py-12 border-b">
+                <div className="container mx-auto">
+                    <div className="mb-8">
+                        <h2 className="text-2xl font-black text-slate-900 tracking-tight mb-2">Browse by Health Conditions</h2>
+                        <p className="text-slate-500 font-medium">Find medicines for your specific health needs.</p>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+                        {[
+                            { name: "Diabetes Care", icon: Syringe, color: "bg-blue-50 hover:bg-blue-100 border-blue-200", iconColor: "text-blue-600" },
+                            { name: "Cardiac Care", icon: Heart, color: "bg-red-50 hover:bg-red-100 border-red-200", iconColor: "text-red-600" },
+                            { name: "Stomach Care", icon: Activity, color: "bg-orange-50 hover:bg-orange-100 border-orange-200", iconColor: "text-orange-600" },
+                            { name: "Pain Relief", icon: Tablets, color: "bg-purple-50 hover:bg-purple-100 border-purple-200", iconColor: "text-purple-600" },
+                            { name: "Liver Care", icon: Droplet, color: "bg-amber-50 hover:bg-amber-100 border-amber-200", iconColor: "text-amber-600" },
+                            { name: "Oral Care", icon: Smile, color: "bg-teal-50 hover:bg-teal-100 border-teal-200", iconColor: "text-teal-600" },
+                            { name: "Respiratory", icon: Wind, color: "bg-cyan-50 hover:bg-cyan-100 border-cyan-200", iconColor: "text-cyan-600" },
+                            { name: "Sexual Health", icon: Users, color: "bg-pink-50 hover:bg-pink-100 border-pink-200", iconColor: "text-pink-600" },
+                            { name: "Elderly Care", icon: UserCircle, color: "bg-slate-50 hover:bg-slate-100 border-slate-200", iconColor: "text-slate-600" },
+                            { name: "Cold & Immunity", icon: Snowflake, color: "bg-green-50 hover:bg-green-100 border-green-200", iconColor: "text-green-600" },
+                        ].map((condition, i) => {
+                            const IconComponent = condition.icon;
+                            return (
+                                <motion.button
+                                    key={i}
+                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ delay: i * 0.05 }}
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    onClick={() => setHealthCondition(healthCondition === condition.name ? "" : condition.name)}
+                                    className={`p-4 rounded-2xl border-2 ${
+                                        healthCondition === condition.name 
+                                            ? 'border-primary bg-primary/10' 
+                                            : condition.color
+                                    } transition-all group`}
                                 >
-                                    {cat}
-                                </Button>
-                            ))}
-                        </motion.div>
+                                    <div className="flex flex-col items-center text-center gap-2">
+                                        <div className={`h-10 w-10 rounded-xl ${
+                                            healthCondition === condition.name 
+                                                ? 'bg-primary/20' 
+                                                : 'bg-white'
+                                        } flex items-center justify-center`}>
+                                            <IconComponent className={`h-5 w-5 ${
+                                                healthCondition === condition.name 
+                                                    ? 'text-primary' 
+                                                    : condition.iconColor
+                                            }`} />
+                                        </div>
+                                        <h3 className={`text-xs font-bold ${
+                                            healthCondition === condition.name 
+                                                ? 'text-primary' 
+                                                : 'text-slate-900 group-hover:text-primary'
+                                        } transition-colors`}>
+                                            {condition.name}
+                                        </h3>
+                                    </div>
+                                </motion.button>
+                            );
+                        })}
                     </div>
                 </div>
             </div>
@@ -122,14 +209,24 @@ export default function MedicinesPage() {
                         <p className="text-red-500 font-bold">Unable to load medicines right now.</p>
                         <Button onClick={() => window.location.reload()}>Try Again</Button>
                     </div>
-                ) : medicines?.length === 0 ? (
+                ) : filteredMedicines?.length === 0 ? (
                     <motion.div
                         initial={{ scale: 0.9, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         className="text-center py-32 space-y-2"
                     >
                         <p className="text-2xl font-black text-slate-900">No medicines found.</p>
-                        <p className="text-slate-500 font-medium">Try searching for something else, or call our support.</p>
+                        <p className="text-slate-500 font-medium">
+                            {healthCondition 
+                                ? `No medicines available for ${healthCondition}. Try browsing other categories.`
+                                : "Try searching for something else, or call our support."
+                            }
+                        </p>
+                        {healthCondition && (
+                            <Button onClick={() => window.location.href = '/medicines'} className="mt-4">
+                                View All Medicines
+                            </Button>
+                        )}
                     </motion.div>
                 ) : (
                     <motion.div
@@ -138,7 +235,7 @@ export default function MedicinesPage() {
                         animate="visible"
                         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"
                     >
-                        {medicines?.map((med) => (
+                        {filteredMedicines?.map((med) => (
                             <motion.div
                                 key={med.id}
                                 variants={itemVariants}

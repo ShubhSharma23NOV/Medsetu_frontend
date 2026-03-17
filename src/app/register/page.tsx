@@ -15,8 +15,9 @@ import { useAuthStore } from "@/lib/auth-store";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { API_BASE_URL } from "@/lib/api-config";
 
-const registerSchema = z.object({
+const customerSchema = z.object({
     name: z.string().min(2, "Full name is required."),
     email: z.string().email("Invalid email address."),
     password: z.string().min(8, "Password must be at least 8 characters."),
@@ -26,7 +27,26 @@ const registerSchema = z.object({
     path: ["confirmPassword"],
 });
 
-type RegisterFormValues = z.infer<typeof registerSchema>;
+const storeSchema = z.object({
+    name: z.string().min(2, "Owner name is required."),
+    email: z.string().email("Invalid email address."),
+    password: z.string().min(8, "Password must be at least 8 characters."),
+    confirmPassword: z.string(),
+    storeName: z.string().min(2, "Store name is required."),
+    storePhone: z.string().min(10, "Valid phone number is required."),
+    licenseNumber: z.string().min(5, "License number is required."),
+    storeStreet: z.string().min(5, "Street address is required."),
+    storeCity: z.string().min(2, "City is required."),
+    storeState: z.string().min(2, "State is required."),
+    storePincode: z.string().length(6, "Pincode must be 6 digits."),
+}).refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match.",
+    path: ["confirmPassword"],
+});
+
+type CustomerFormValues = z.infer<typeof customerSchema>;
+type StoreFormValues = z.infer<typeof storeSchema>;
+type RegisterFormValues = CustomerFormValues | StoreFormValues;
 
 export default function RegisterPage() {
     const router = useRouter();
@@ -38,11 +58,12 @@ export default function RegisterPage() {
         register,
         handleSubmit,
         formState: { errors },
-    } = useForm<RegisterFormValues>({
-        resolver: zodResolver(registerSchema),
+        reset,
+    } = useForm<any>({
+        resolver: zodResolver(role === "USER" ? customerSchema : storeSchema),
     });
 
-    const onSubmit = async (data: RegisterFormValues) => {
+    const onSubmit = async (data: any) => {
         setIsSubmitting(true);
         try {
             // Map frontend role to database role
@@ -61,18 +82,52 @@ export default function RegisterPage() {
             }
 
             login(response.user, response.token);
-            toast.success("Account Created!", {
-                description: `Swagat hai, ${response.user.name}. You are now a MedSetu member.`,
-            });
 
-            // Redirect based on user role
-            if (response.user.role === 'STORE') {
-                // Store users go to application form first
-                router.push("/store-application");
-            } else if (response.user.role === 'PLATFORM_ADMIN') {
-                router.push("/platform-admin");
+            // If store registration, submit store application immediately
+            if (role === "ADMIN" && response.user.role === 'STORE') {
+                try {
+                    const fullAddress = `${data.storeStreet}, ${data.storeCity}, ${data.storeState} - ${data.storePincode}`;
+                    
+                    const storeResponse = await fetch(`${API_BASE_URL}/store-application/submit`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${response.token}`,
+                        },
+                        body: JSON.stringify({
+                            storeName: data.storeName,
+                            storeAddress: fullAddress,
+                            storePhone: data.storePhone,
+                            licenseNumber: data.licenseNumber,
+                            ownerName: data.name,
+                        }),
+                    });
+
+                    if (!storeResponse.ok) {
+                        throw new Error('Failed to submit store application');
+                    }
+
+                    toast.success("Store Application Submitted!", {
+                        description: "Your application is under review. We'll notify you via email.",
+                    });
+                    router.push("/store-application");
+                } catch (storeError) {
+                    toast.error("Store Application Failed", {
+                        description: "Account created but store application failed. Please complete it from your dashboard.",
+                    });
+                    router.push("/store-application");
+                }
             } else {
-                router.push("/");
+                toast.success("Account Created!", {
+                    description: `Swagat hai, ${response.user.name}. You are now a MedSetu member.`,
+                });
+                
+                // Redirect based on user role
+                if (response.user.role === 'PLATFORM_ADMIN') {
+                    router.push("/platform-admin");
+                } else {
+                    router.push("/");
+                }
             }
         } catch (error) {
             // More detailed error handling
@@ -164,9 +219,11 @@ export default function RegisterPage() {
 
                         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
                             <div className="space-y-1.5">
-                                <label className="text-xs font-bold text-slate-500 ml-1">Full Name</label>
+                                <label className="text-xs font-bold text-slate-500 ml-1">
+                                    {role === "ADMIN" ? "Owner Name" : "Full Name"}
+                                </label>
                                 <Input
-                                    placeholder="e.g. Rahul Verma"
+                                    placeholder={role === "ADMIN" ? "e.g. Rahul Verma" : "e.g. Rahul Verma"}
                                     className="h-12 bg-white border-slate-200 rounded-xl px-4 text-base focus-visible:ring-1 focus-visible:ring-primary/20 transition-all shadow-sm"
                                     {...register("name")}
                                 />
@@ -212,6 +269,88 @@ export default function RegisterPage() {
                                 )}
                             </div>
 
+                            {/* Store-specific fields */}
+                            {role === "ADMIN" && (
+                                <motion.div
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: "auto" }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    className="space-y-5 pt-4 border-t border-slate-200"
+                                >
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold text-slate-500 ml-1">Store Name</label>
+                                        <Input
+                                            placeholder="e.g. Apollo Pharmacy"
+                                            className="h-12 bg-white border-slate-200 rounded-xl px-4 text-base focus-visible:ring-1 focus-visible:ring-primary/20 transition-all shadow-sm"
+                                            {...register("storeName")}
+                                        />
+                                        {errors.storeName && <p className="text-red-500 text-[10px] font-bold flex items-center gap-1 mt-1 ml-1"><AlertCircle size={10} /> {errors.storeName.message as string}</p>}
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-bold text-slate-500 ml-1">Phone Number</label>
+                                            <Input
+                                                placeholder="+91 98765 43210"
+                                                className="h-12 bg-white border-slate-200 rounded-xl px-4 text-base focus-visible:ring-1 focus-visible:ring-primary/20 transition-all shadow-sm"
+                                                {...register("storePhone")}
+                                            />
+                                            {errors.storePhone && <p className="text-red-500 text-[10px] font-bold flex items-center gap-1 mt-1 ml-1"><AlertCircle size={10} /> {errors.storePhone.message as string}</p>}
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-bold text-slate-500 ml-1">License Number</label>
+                                            <Input
+                                                placeholder="DL-XX-XXXX-XXXXX"
+                                                className="h-12 bg-white border-slate-200 rounded-xl px-4 text-base focus-visible:ring-1 focus-visible:ring-primary/20 transition-all shadow-sm"
+                                                {...register("licenseNumber")}
+                                            />
+                                            {errors.licenseNumber && <p className="text-red-500 text-[10px] font-bold flex items-center gap-1 mt-1 ml-1"><AlertCircle size={10} /> {errors.licenseNumber.message as string}</p>}
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold text-slate-500 ml-1">Street Address</label>
+                                        <Input
+                                            placeholder="123 Main Street, Vijay Nagar"
+                                            className="h-12 bg-white border-slate-200 rounded-xl px-4 text-base focus-visible:ring-1 focus-visible:ring-primary/20 transition-all shadow-sm"
+                                            {...register("storeStreet")}
+                                        />
+                                        {errors.storeStreet && <p className="text-red-500 text-[10px] font-bold flex items-center gap-1 mt-1 ml-1"><AlertCircle size={10} /> {errors.storeStreet.message as string}</p>}
+                                    </div>
+
+                                    <div className="grid grid-cols-3 gap-4">
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-bold text-slate-500 ml-1">City</label>
+                                            <Input
+                                                placeholder="Indore"
+                                                className="h-12 bg-white border-slate-200 rounded-xl px-4 text-base focus-visible:ring-1 focus-visible:ring-primary/20 transition-all shadow-sm"
+                                                {...register("storeCity")}
+                                            />
+                                            {errors.storeCity && <p className="text-red-500 text-[10px] font-bold flex items-center gap-1 mt-1 ml-1"><AlertCircle size={10} /> {errors.storeCity.message as string}</p>}
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-bold text-slate-500 ml-1">State</label>
+                                            <Input
+                                                placeholder="Madhya Pradesh"
+                                                className="h-12 bg-white border-slate-200 rounded-xl px-4 text-base focus-visible:ring-1 focus-visible:ring-primary/20 transition-all shadow-sm"
+                                                {...register("storeState")}
+                                            />
+                                            {errors.storeState && <p className="text-red-500 text-[10px] font-bold flex items-center gap-1 mt-1 ml-1"><AlertCircle size={10} /> {errors.storeState.message as string}</p>}
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-bold text-slate-500 ml-1">Pincode</label>
+                                            <Input
+                                                placeholder="452001"
+                                                maxLength={6}
+                                                className="h-12 bg-white border-slate-200 rounded-xl px-4 text-base focus-visible:ring-1 focus-visible:ring-primary/20 transition-all shadow-sm"
+                                                {...register("storePincode")}
+                                            />
+                                            {errors.storePincode && <p className="text-red-500 text-[10px] font-bold flex items-center gap-1 mt-1 ml-1"><AlertCircle size={10} /> {errors.storePincode.message as string}</p>}
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
+
                             <Button disabled={isSubmitting} size="lg" className="w-full h-12 rounded-xl text-md font-bold shadow-sm transition-all hover:scale-[1.02]">
                                 {isSubmitting ? (
                                     <div className="flex items-center gap-2 italic">
@@ -219,7 +358,7 @@ export default function RegisterPage() {
                                     </div>
                                 ) : (
                                     <div className="flex items-center gap-2">
-                                        Create Account <ArrowRight className="h-5 w-5" />
+                                        {role === "ADMIN" ? "Submit Application" : "Create Account"} <ArrowRight className="h-5 w-5" />
                                     </div>
                                 )}
                             </Button>

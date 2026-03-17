@@ -19,7 +19,7 @@ export default function PlatformAdminDashboard() {
     const { data: stats, isLoading: statsLoading } = usePlatformStats();
     const { data: stores, isLoading: storesLoading } = usePlatformStores();
 
-    const pendingStores = stores?.filter(store => store.status === 'Pending') || [];
+    const pendingStores = stores?.filter(store => store.status?.toUpperCase() === 'PENDING') || [];
     const recentStores = stores?.slice(0, 4) || [];
 
     if (statsLoading) {
@@ -49,7 +49,8 @@ export default function PlatformAdminDashboard() {
                         change: `+${stats?.monthlyGrowth || 0}%`, 
                         icon: TrendingUp, 
                         color: "text-green-600", 
-                        bg: "bg-green-50" 
+                        bg: "bg-green-50",
+                        cardBg: "bg-slate-900"
                     },
                     { 
                         title: "Active Pharmacies", 
@@ -57,7 +58,8 @@ export default function PlatformAdminDashboard() {
                         change: "+4 new", 
                         icon: Store, 
                         color: "text-indigo-600", 
-                        bg: "bg-indigo-50" 
+                        bg: "bg-indigo-50",
+                        cardBg: "bg-slate-900"
                     },
                     { 
                         title: "Registered Users", 
@@ -65,7 +67,8 @@ export default function PlatformAdminDashboard() {
                         change: "+120 today", 
                         icon: Users, 
                         color: "text-blue-600", 
-                        bg: "bg-blue-50" 
+                        bg: "bg-blue-50",
+                        cardBg: "bg-slate-900"
                     },
                     { 
                         title: "Pending Approvals", 
@@ -73,12 +76,13 @@ export default function PlatformAdminDashboard() {
                         change: "Requires action", 
                         icon: AlertCircle, 
                         color: "text-orange-600", 
-                        bg: "bg-orange-50" 
+                        bg: "bg-orange-50",
+                        cardBg: "bg-slate-900"
                     },
                 ].map((stat, i) => (
-                    <Card key={i} className="rounded-2xl border-none shadow-sm hover:shadow-lg transition-shadow">
+                    <Card key={i} className={`rounded-2xl border-none shadow-sm hover:shadow-lg transition-shadow ${stat.cardBg}`}>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium text-slate-500 uppercase tracking-wider">
+                            <CardTitle className="text-sm font-medium text-slate-400 uppercase tracking-wider">
                                 {stat.title}
                             </CardTitle>
                             <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${stat.bg} ${stat.color}`}>
@@ -86,12 +90,14 @@ export default function PlatformAdminDashboard() {
                             </div>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-3xl font-black text-slate-900">{stat.value}</div>
-                            <p className="text-xs font-bold text-slate-400 mt-1 flex items-center gap-1">
-                                <span className={stat.title === "Pending Approvals" ? "text-orange-600" : "text-green-600"}>
+                            <div className="text-3xl font-black text-white">{stat.value}</div>
+                            <p className="text-xs font-bold mt-1 flex items-center gap-1">
+                                <span className={stat.title === "Pending Approvals" ? "text-orange-500" : "text-green-500"}>
                                     {stat.change}
                                 </span>
-                                {stat.title !== "Pending Approvals" && "from last month"}
+                                <span className="text-slate-500">
+                                    {stat.title !== "Pending Approvals" && "from last month"}
+                                </span>
                             </p>
                         </CardContent>
                     </Card>
@@ -101,31 +107,31 @@ export default function PlatformAdminDashboard() {
             {/* Recent Activity Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Recent Registrations */}
-                <Card className="lg:col-span-2 rounded-[2rem] border-none shadow-sm">
+                <Card className="lg:col-span-2 rounded-[2rem] border-none shadow-sm bg-slate-900">
                     <CardHeader>
-                        <CardTitle className="text-xl font-bold text-slate-900">New Pharmacy Requests</CardTitle>
+                        <CardTitle className="text-xl font-bold text-white">New Pharmacy Requests</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-6">
                             {storesLoading ? (
                                 <div className="flex items-center justify-center py-8">
-                                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                                    <span className="text-slate-500">Loading stores...</span>
+                                    <Loader2 className="h-4 w-4 animate-spin mr-2 text-slate-400" />
+                                    <span className="text-slate-400">Loading stores...</span>
                                 </div>
                             ) : recentStores.length === 0 ? (
-                                <div className="text-center py-8 text-slate-500">
+                                <div className="text-center py-8 text-slate-400">
                                     No recent pharmacy requests
                                 </div>
                             ) : (
                                 recentStores.map((store, i) => (
                                     <div key={i} className="flex items-center justify-between">
                                         <div className="flex flex-1 items-center gap-4">
-                                            <Avatar className="h-12 w-12 rounded-xl bg-slate-100 border border-slate-200">
-                                                <AvatarFallback className="rounded-xl font-bold text-slate-500">{store.name[0]}</AvatarFallback>
+                                            <Avatar className="h-12 w-12 rounded-xl bg-slate-800 border border-slate-700">
+                                                <AvatarFallback className="rounded-xl font-bold text-slate-300 bg-slate-800">{store.name[0]}</AvatarFallback>
                                             </Avatar>
                                             <div>
-                                                <p className="font-bold text-slate-900">{store.name}</p>
-                                                <p className="text-xs text-slate-500 font-medium">{store.location} • {new Date(store.joined).toLocaleDateString()}</p>
+                                                <p className="font-bold text-white">{store.name}</p>
+                                                <p className="text-xs text-slate-400 font-medium">{store.location} • {new Date(store.joined).toLocaleDateString()}</p>
                                             </div>
                                         </div>
                                         <div>
@@ -140,7 +146,7 @@ export default function PlatformAdminDashboard() {
                                 ))
                             )}
                         </div>
-                        <Button variant="outline" className="w-full mt-6 rounded-xl font-bold text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 border-slate-200">
+                        <Button variant="outline" className="w-full mt-6 rounded-xl font-bold text-slate-300 hover:text-white hover:bg-slate-800 border-slate-700">
                             View All Requests
                         </Button>
                     </CardContent>

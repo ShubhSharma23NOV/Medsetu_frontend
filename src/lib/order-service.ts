@@ -45,8 +45,9 @@ export const orderService = {
     /**
      * Cancel an order
      */
-    async cancelOrder(id: string): Promise<void> {
-        await apiClient.delete(`/orders/${id}`);
+    async cancelOrder(id: string, reason?: string): Promise<Order> {
+        const { data } = await apiClient.patch(`/orders/${id}/cancel`, { reason });
+        return data;
     },
 
     /**
