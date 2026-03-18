@@ -309,10 +309,24 @@ function UserOrderDetailContent({ params }: { params: Promise<{ id: string }> })
                                         {order.type}
                                     </Badge>
                                 </div>
-                                {order.address && (
+                                {(order.deliveryAddress || order.address) && (
                                     <div>
                                         <p className="text-xs text-slate-500 uppercase tracking-wide font-bold mb-1">Address</p>
-                                        <p className="font-medium text-slate-700 text-sm">{order.address}</p>
+                                        {order.deliveryAddress ? (
+                                            <div className="space-y-1">
+                                                <p className="font-bold text-slate-900 text-sm">{order.deliveryAddress.fullName}</p>
+                                                <p className="text-sm text-slate-700">{order.deliveryAddress.phone}</p>
+                                                <p className="text-sm text-slate-700">
+                                                    {order.deliveryAddress.addressLine}
+                                                    {order.deliveryAddress.landmark && `, Near ${order.deliveryAddress.landmark}`}
+                                                </p>
+                                                <p className="text-sm text-slate-700">
+                                                    {order.deliveryAddress.city}, {order.deliveryAddress.state} - {order.deliveryAddress.pincode}
+                                                </p>
+                                            </div>
+                                        ) : (
+                                            <p className="font-medium text-slate-700 text-sm">{order.address}</p>
+                                        )}
                                     </div>
                                 )}
                             </div>

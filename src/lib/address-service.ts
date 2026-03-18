@@ -41,7 +41,7 @@ export interface UpdateAddressRequest {
 
 class AddressService {
   private getAuthHeaders() {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('auth-token');
     return {
       'Content-Type': 'application/json',
       ...(token && { Authorization: `Bearer ${token}` }),

@@ -142,7 +142,21 @@ function OrderConfirmationContent() {
                                             <MapPin className="h-5 w-5 text-slate-500 mt-0.5" />
                                             <div>
                                                 <p className="font-bold text-sm">Delivery Address</p>
-                                                <p className="text-sm text-slate-600">{order.address}</p>
+                                                {order.deliveryAddress ? (
+                                                    <div className="space-y-1 mt-1">
+                                                        <p className="text-sm font-medium text-slate-700">{order.deliveryAddress.fullName}</p>
+                                                        <p className="text-sm text-slate-600">{order.deliveryAddress.phone}</p>
+                                                        <p className="text-sm text-slate-600">
+                                                            {order.deliveryAddress.addressLine}
+                                                            {order.deliveryAddress.landmark && `, Near ${order.deliveryAddress.landmark}`}
+                                                        </p>
+                                                        <p className="text-sm text-slate-600">
+                                                            {order.deliveryAddress.city}, {order.deliveryAddress.state} - {order.deliveryAddress.pincode}
+                                                        </p>
+                                                    </div>
+                                                ) : (
+                                                    <p className="text-sm text-slate-600">{order.address}</p>
+                                                )}
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-3">

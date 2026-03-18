@@ -27,6 +27,7 @@ import { useAuthStore } from "@/lib/auth-store";
 import { useCreateOrder } from "@/hooks/use-orders";
 import { usePrescription } from "@/hooks/use-prescriptions";
 import { usePricingConfig, useDefaultStore, useBusinessConfig } from "@/hooks/use-config";
+import { useAddresses } from "@/hooks/use-addresses";
 import { configService } from "@/lib/config";
 import { toast } from "sonner";
 import { RoleGuard } from "@/components/auth/role-guard";
@@ -38,6 +39,7 @@ import {
     getRazorpayKey,
     type RazorpayResponse 
 } from "@/lib/razorpay";
+import type { Address } from "@/lib/address-service";
 
 export default function CheckoutPage() {
     return (
@@ -58,12 +60,19 @@ function CheckoutContent() {
         prescriptionId?.toString() || ""
     );
     
+    // Fetch saved addresses
+    const { data: savedAddresses, isLoading: addressesLoading } = useAddresses();
+    
     // Use configuration
     const pricingConfig = usePricingConfig();
     const businessConfig = useBusinessConfig();
 
     // Payment processing state
     const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+
+    // Address selection state
+    const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
+    const [useNewAddress, setUseNewAddress] = useState(false);
 
     // Only DELIVERY type - no pickup
     const deliveryType = 'DELIVERY';
@@ -84,13 +93,33 @@ function CheckoutContent() {
     // Check if cart has Rx medicines
     const needsPrescription = hasRxMedicines();
 
+    // Handle address selection
+    const handleSelectAddress = (addr: Address) => {
+        setSelectedAddressId(addr.id);
+        setUseNewAddress(false);
+        // Pre-fill form with selected address
+        setAddress({
+            street: addr.addressLine,
+            city: addr.city,
+            state: addr.state,
+            pincode: addr.pincode,
+            phone: addr.phone
+        });
+    };
+
     const handlePlaceOrder = async () => {
         if (!user) {
             toast.error("Please login to place order");
             return;
         }
 
-        if (!address.street || !address.pincode || !address.phone) {
+        // Validate address - either selected or manually entered
+        if (!selectedAddressId && !useNewAddress) {
+            toast.error("Please select an address or enter a new one");
+            return;
+        }
+
+        if (useNewAddress && (!address.street || !address.pincode || !address.phone)) {
             toast.error("Please fill all delivery address fields");
             return;
         }
@@ -151,6 +180,7 @@ function CheckoutContent() {
                 items: items,
                 amount: finalAmount,
                 address: fullAddress,
+                addressId: selectedAddressId || undefined, // Use structured address if selected
                 type: 'DELIVERY' as const, // Always delivery
                 paymentMethod: 'CASH' as const, // Only CASH for now (Razorpay disabled)
                 prescriptionId: prescriptionId || undefined,
@@ -378,9 +408,21 @@ function CheckoutContent() {
                         {/* Delivery Address - Always Required */}
                         <Card className="rounded-2xl border-slate-200">
                             <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <MapPin className="h-5 w-5 text-primary" />
-                                    Delivery Address
+                                <CardTitle className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <MapPin className="h-5 w-5 text-primary" />
+                                        Delivery Address
+                                    </div>
+                                    {savedAddresses && savedAddresses.length > 0 && (
+                                        <Button
+                                            variant="link"
+                                            size="sm"
+                                            onClick={() => router.push('/profile/manage-addresses')}
+                                            className="text-primary"
+                                        >
+                                            Manage
+                                        </Button>
+                                    )}
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
@@ -390,47 +432,135 @@ function CheckoutContent() {
                                         Home delivery • {totalPrice >= 350 ? 'FREE delivery' : `${configService.formatCurrency(pricingConfig?.deliveryFee || 35)} delivery fee`}
                                     </p>
                                 </div>
-                                    <div>
-                                        <Label htmlFor="street">Street Address *</Label>
-                                        <Textarea
-                                            id="street"
-                                            placeholder="Enter your complete address"
-                                            value={address.street}
-                                            onChange={(e) => setAddress({...address, street: e.target.value})}
-                                            className="mt-1"
-                                        />
+
+                                {/* Saved Addresses */}
+                                {!addressesLoading && savedAddresses && savedAddresses.length > 0 && !useNewAddress && (
+                                    <div className="space-y-3">
+                                        <Label className="text-sm font-bold">Select Saved Address</Label>
+                                        <div className="space-y-2 max-h-64 overflow-y-auto">
+                                            {savedAddresses.map((addr) => (
+                                                <div
+                                                    key={addr.id}
+                                                    onClick={() => handleSelectAddress(addr)}
+                                                    className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                                                        selectedAddressId === addr.id
+                                                            ? 'border-primary bg-primary/5'
+                                                            : 'border-slate-200 hover:border-slate-300'
+                                                    }`}
+                                                >
+                                                    <div className="flex items-start justify-between">
+                                                        <div className="flex-1">
+                                                            <div className="flex items-center gap-2 mb-2">
+                                                                <Badge variant={addr.isDefault ? "default" : "secondary"}>
+                                                                    {addr.title}
+                                                                </Badge>
+                                                                {addr.isDefault && (
+                                                                    <Badge variant="outline" className="text-xs">Default</Badge>
+                                                                )}
+                                                            </div>
+                                                            <p className="font-bold text-sm">{addr.fullName}</p>
+                                                            <p className="text-sm text-slate-600">{addr.phone}</p>
+                                                            <p className="text-sm text-slate-600 mt-1">
+                                                                {addr.addressLine}
+                                                                {addr.landmark && `, Near ${addr.landmark}`}
+                                                            </p>
+                                                            <p className="text-sm text-slate-600">
+                                                                {addr.city}, {addr.state} - {addr.pincode}
+                                                            </p>
+                                                        </div>
+                                                        {selectedAddressId === addr.id && (
+                                                            <CheckCircle className="h-5 w-5 text-primary" />
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <Button
+                                            variant="outline"
+                                            onClick={() => {
+                                                setUseNewAddress(true);
+                                                setSelectedAddressId(null);
+                                                setAddress({
+                                                    street: '',
+                                                    city: businessConfig?.address.city || 'Indore',
+                                                    state: businessConfig?.address.state || 'Madhya Pradesh',
+                                                    pincode: '',
+                                                    phone: ''
+                                                });
+                                            }}
+                                            className="w-full"
+                                        >
+                                            + Use New Address
+                                        </Button>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-4">
+                                )}
+
+                                {/* Manual Address Entry */}
+                                {(useNewAddress || !savedAddresses || savedAddresses.length === 0) && (
+                                    <div className="space-y-4">
+                                        {savedAddresses && savedAddresses.length > 0 && (
+                                            <div className="flex items-center justify-between">
+                                                <Label className="text-sm font-bold">Enter New Address</Label>
+                                                <Button
+                                                    variant="link"
+                                                    size="sm"
+                                                    onClick={() => {
+                                                        setUseNewAddress(false);
+                                                        // Select default address if available
+                                                        const defaultAddr = savedAddresses.find(a => a.isDefault);
+                                                        if (defaultAddr) {
+                                                            handleSelectAddress(defaultAddr);
+                                                        }
+                                                    }}
+                                                    className="text-primary"
+                                                >
+                                                    ← Back to Saved Addresses
+                                                </Button>
+                                            </div>
+                                        )}
                                         <div>
-                                            <Label htmlFor="city">City</Label>
-                                            <Input
-                                                id="city"
-                                                value={address.city}
-                                                onChange={(e) => setAddress({...address, city: e.target.value})}
+                                            <Label htmlFor="street">Street Address *</Label>
+                                            <Textarea
+                                                id="street"
+                                                placeholder="Enter your complete address"
+                                                value={address.street}
+                                                onChange={(e) => setAddress({...address, street: e.target.value})}
                                                 className="mt-1"
                                             />
                                         </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <Label htmlFor="city">City</Label>
+                                                <Input
+                                                    id="city"
+                                                    value={address.city}
+                                                    onChange={(e) => setAddress({...address, city: e.target.value})}
+                                                    className="mt-1"
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label htmlFor="pincode">Pincode *</Label>
+                                                <Input
+                                                    id="pincode"
+                                                    placeholder="452001"
+                                                    value={address.pincode}
+                                                    onChange={(e) => setAddress({...address, pincode: e.target.value})}
+                                                    className="mt-1"
+                                                />
+                                            </div>
+                                        </div>
                                         <div>
-                                            <Label htmlFor="pincode">Pincode *</Label>
+                                            <Label htmlFor="phone">Phone Number *</Label>
                                             <Input
-                                                id="pincode"
-                                                placeholder="452001"
-                                                value={address.pincode}
-                                                onChange={(e) => setAddress({...address, pincode: e.target.value})}
+                                                id="phone"
+                                                placeholder={businessConfig?.contact.phone || "9876543210"}
+                                                value={address.phone}
+                                                onChange={(e) => setAddress({...address, phone: e.target.value})}
                                                 className="mt-1"
                                             />
                                         </div>
                                     </div>
-                                    <div>
-                                        <Label htmlFor="phone">Phone Number *</Label>
-                                        <Input
-                                            id="phone"
-                                            placeholder={businessConfig?.contact.phone || "9876543210"}
-                                            value={address.phone}
-                                            onChange={(e) => setAddress({...address, phone: e.target.value})}
-                                            className="mt-1"
-                                        />
-                                    </div>
+                                )}
                             </CardContent>
                         </Card>
 
