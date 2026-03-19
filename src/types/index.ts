@@ -239,3 +239,34 @@ export interface OrderTracking {
         createdAt: string;
     };
 }
+
+// Store types
+export interface Store {
+    id: number;
+    userId: number;
+    storeName: string;
+    ownerName: string;
+    storeAddress: string;
+    storePhone: string;
+    licenseNumber: string;
+    storeStatus: 'PENDING' | 'APPROVED' | 'REJECTED';
+    rejectionReason?: string;
+    priority: number;
+    serviceablePincodes: string[];
+    isActive: boolean;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface StoreOrder extends Order {
+    storeId: number;
+}
+
+export interface StoreStats {
+    totalOrders: number;
+    pendingOrders: number;
+    completedOrders: number;
+    totalRevenue: number;
+    totalMedicines: number;
+    lowStockCount: number;
+}

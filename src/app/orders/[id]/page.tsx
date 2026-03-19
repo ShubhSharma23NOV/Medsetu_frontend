@@ -48,7 +48,7 @@ function UserOrderDetailContent({ params }: { params: Promise<{ id: string }> })
         if (!confirm('Are you sure you want to cancel this order?')) return;
         
         try {
-            await cancelOrderMutation.mutateAsync(resolvedParams.id);
+            await cancelOrderMutation.mutateAsync({ id: resolvedParams.id });
             toast.success("Order cancelled", {
                 description: "Your order has been cancelled successfully."
             });

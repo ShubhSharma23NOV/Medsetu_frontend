@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,7 @@ import { useCartStore } from "@/lib/cart-store";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
-export default function MedicinesPage() {
+function MedicinesContent() {
     const searchParams = useSearchParams();
     const [search, setSearch] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -315,5 +315,13 @@ export default function MedicinesPage() {
                 )}
             </div>
         </div>
+    );
+}
+
+export default function MedicinesPage() {
+    return (
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
+            <MedicinesContent />
+        </Suspense>
     );
 }
