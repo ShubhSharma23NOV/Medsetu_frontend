@@ -41,7 +41,7 @@ export interface Order {
     addressId?: number; // New field for structured addresses
     type: "DELIVERY" | "PICKUP";
     createdAt: string;
-    OrderItems?: OrderItem[];
+    orderItems?: OrderItem[]; // Changed from OrderItems to orderItems
     deliveryAddress?: {
         id: number;
         title: string;

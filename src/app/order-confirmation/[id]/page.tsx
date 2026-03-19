@@ -270,8 +270,8 @@ function OrderConfirmationContent() {
                             <CardContent className="space-y-4">
                                 {/* Order Items */}
                                 <div className="space-y-3">
-                                    {order.OrderItems && order.OrderItems.length > 0 ? (
-                                        order.OrderItems.map((item) => (
+                                    {order.orderItems && order.orderItems.length > 0 ? (
+                                        order.orderItems.map((item) => (
                                             <div key={item.id} className="flex items-center gap-3 p-3 rounded-xl bg-white">
                                                 <div className="h-12 w-12 rounded-lg bg-slate-100 flex items-center justify-center">
                                                     <Pill className="h-6 w-6 text-primary" />

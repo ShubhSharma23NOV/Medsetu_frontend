@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,7 +25,7 @@ import {
 import Link from "next/link";
 import { useCartStore } from "@/lib/cart-store";
 import { useAuthStore } from "@/lib/auth-store";
-import { useCreateOrder } from "@/hooks/use-orders";
+import { useCreateOrder, useOrders } from "@/hooks/use-orders";
 import { usePrescription } from "@/hooks/use-prescriptions";
 import { usePricingConfig, useDefaultStore, useBusinessConfig } from "@/hooks/use-config";
 import { useAddresses } from "@/hooks/use-addresses";
@@ -63,6 +64,9 @@ function CheckoutContent() {
     // Fetch saved addresses
     const { data: savedAddresses, isLoading: addressesLoading } = useAddresses();
     
+    // Fetch user's previous orders to get delivery addresses
+    const { data: previousOrders } = useOrders();
+    
     // Use configuration
     const pricingConfig = usePricingConfig();
     const businessConfig = useBusinessConfig();
@@ -71,8 +75,130 @@ function CheckoutContent() {
     const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
     // Address selection state
-    const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
-    const [useNewAddress, setUseNewAddress] = useState(false);
+    const [selectedAddressId, setSelectedAddressId] = useState<number | string | null>(null);
+    const [useNewAddress, setUseNewAddress] = useState(false); // Show saved addresses first
+    
+    // Get unique previous delivery addresses from orders
+    const previousDeliveryAddresses = React.useMemo(() => {
+        if (!previousOrders) {
+            console.log('No previous orders found');
+            return [];
+        }
+        
+        console.log('Previous orders:', previousOrders.length);
+        
+        const addressMap = new Map();
+        
+        previousOrders.forEach(order => {
+            console.log('Order:', order.id, 'Type:', order.type, 'Has deliveryAddress:', !!order.deliveryAddress, 'Has address string:', !!order.address);
+            
+            if (order.type === 'DELIVERY') {
+                // Handle structured address (new orders)
+                if (order.deliveryAddress) {
+                    const key = `${order.deliveryAddress.addressLine}-${order.deliveryAddress.pincode}`;
+                    if (!addressMap.has(key)) {
+                        console.log('Adding structured previous address:', order.deliveryAddress.addressLine);
+                        addressMap.set(key, {
+                            ...order.deliveryAddress,
+                            isPrevious: true,
+                            orderId: order.id
+                        });
+                    }
+                }
+                // Handle legacy string address (old orders)
+                else if (order.address) {
+                    // Parse the address string to extract components
+                    // Format: "Street, City, State - Pincode, Phone: 1234567890"
+                    const addressParts = order.address.split(',').map(s => s.trim());
+                    const pincodeMatch = order.address.match(/\b(\d{6})\b/);
+                    const phoneMatch = order.address.match(/Phone:\s*(\d{10})/);
+                    
+                    if (addressParts.length >= 2 && pincodeMatch) {
+                        const pincode = pincodeMatch[1];
+                        const key = `${addressParts[0]}-${pincode}`;
+                        
+                        if (!addressMap.has(key)) {
+                            console.log('Adding legacy previous address:', addressParts[0]);
+                            
+                            // Extract city and state from "City, State - Pincode" format
+                            let city = businessConfig?.address.city || 'Indore';
+                            let state = businessConfig?.address.state || 'Madhya Pradesh';
+                            
+                            if (addressParts.length >= 3) {
+                                const cityStatePart = addressParts[1];
+                                city = cityStatePart;
+                                
+                                if (addressParts.length >= 4) {
+                                    const statePincodePart = addressParts[2];
+                                    const stateMatch = statePincodePart.split('-')[0]?.trim();
+                                    if (stateMatch) state = stateMatch;
+                                }
+                            }
+                            
+                            addressMap.set(key, {
+                                id: `legacy-${order.id}`, // Unique ID for legacy addresses
+                                addressLine: addressParts[0],
+                                city: city,
+                                state: state,
+                                pincode: pincode,
+                                phone: phoneMatch ? phoneMatch[1] : '',
+                                fullName: order.customerName || 'Previous Order',
+                                isPrevious: true,
+                                orderId: order.id,
+                                title: 'Previous Order'
+                            });
+                        }
+                    }
+                }
+            }
+        });
+        
+        console.log('Total previous addresses:', addressMap.size);
+        return Array.from(addressMap.values());
+    }, [previousOrders, businessConfig]);
+    
+    // Combine saved addresses and previous addresses
+    const allAddresses = React.useMemo(() => {
+        const saved = savedAddresses || [];
+        const previous = previousDeliveryAddresses || [];
+        
+        console.log('Combining addresses - Saved:', saved.length, 'Previous:', previous.length);
+        
+        // Filter out previous addresses that are already in saved addresses
+        const filteredPrevious = previous.filter(prev => 
+            !saved.some(saved => 
+                saved.addressLine === prev.addressLine && 
+                saved.pincode === prev.pincode
+            )
+        );
+        
+        console.log('After filtering duplicates - Previous:', filteredPrevious.length);
+        console.log('Total addresses to show:', saved.length + filteredPrevious.length);
+        
+        return [...saved, ...filteredPrevious];
+    }, [savedAddresses, previousDeliveryAddresses]);
+    
+    // Auto-select default address when addresses load
+    React.useEffect(() => {
+        console.log('Address loading state:', { addressesLoading, allAddresses: allAddresses?.length });
+        
+        if (!addressesLoading) {
+            if (allAddresses && allAddresses.length > 0) {
+                console.log('User has addresses:', allAddresses.length);
+                // User has addresses - show selection mode
+                setUseNewAddress(false);
+                const defaultAddr = allAddresses.find(a => a.isDefault);
+                if (defaultAddr && !selectedAddressId) {
+                    console.log('Auto-selecting default address:', defaultAddr.id);
+                    handleSelectAddress(defaultAddr);
+                }
+            } else {
+                console.log('No addresses - showing manual entry');
+                // No addresses - show manual entry
+                setUseNewAddress(true);
+            }
+        }
+    }, [allAddresses, addressesLoading]);
 
     // Only DELIVERY type - no pickup
     const deliveryType = 'DELIVERY';
@@ -86,7 +212,8 @@ function CheckoutContent() {
     });
 
     const totalPrice = getTotalPrice();
-    const deliveryFee = totalPrice >= 350 ? 0 : (pricingConfig?.deliveryFee || 35);
+    const freeDeliveryThreshold = pricingConfig?.freeDeliveryThreshold || 500;
+    const deliveryFee = totalPrice >= freeDeliveryThreshold ? 0 : (pricingConfig?.deliveryFee || 35);
     const tax = totalPrice * (pricingConfig?.taxRate || 0.18);
     const finalAmount = totalPrice + deliveryFee + tax;
     
@@ -94,8 +221,9 @@ function CheckoutContent() {
     const needsPrescription = hasRxMedicines();
 
     // Handle address selection
-    const handleSelectAddress = (addr: Address) => {
-        setSelectedAddressId(addr.id);
+    const handleSelectAddress = (addr: any) => {
+        // For legacy addresses (from old orders), use the string ID, otherwise use numeric ID
+        setSelectedAddressId(typeof addr.id === 'string' ? addr.id : addr.id);
         setUseNewAddress(false);
         // Pre-fill form with selected address
         setAddress({
@@ -103,7 +231,7 @@ function CheckoutContent() {
             city: addr.city,
             state: addr.state,
             pincode: addr.pincode,
-            phone: addr.phone
+            phone: addr.phone || ''
         });
     };
 
@@ -114,13 +242,8 @@ function CheckoutContent() {
         }
 
         // Validate address - either selected or manually entered
-        if (!selectedAddressId && !useNewAddress) {
-            toast.error("Please select an address or enter a new one");
-            return;
-        }
-
-        if (useNewAddress && (!address.street || !address.pincode || !address.phone)) {
-            toast.error("Please fill all delivery address fields");
+        if (!selectedAddressId && (!address.street || !address.pincode || !address.phone)) {
+            toast.error("Please select an address or fill all delivery address fields");
             return;
         }
         
@@ -180,7 +303,7 @@ function CheckoutContent() {
                 items: items,
                 amount: finalAmount,
                 address: fullAddress,
-                addressId: selectedAddressId || undefined, // Use structured address if selected
+                addressId: typeof selectedAddressId === 'number' ? selectedAddressId : undefined, // Only use numeric IDs for structured addresses
                 type: 'DELIVERY' as const, // Always delivery
                 paymentMethod: 'CASH' as const, // Only CASH for now (Razorpay disabled)
                 prescriptionId: prescriptionId || undefined,
@@ -429,18 +552,18 @@ function CheckoutContent() {
                                 <div className="flex items-center gap-2 p-3 rounded-xl bg-blue-50 border border-blue-100">
                                     <Truck className="h-5 w-5 text-blue-600" />
                                     <p className="text-sm text-blue-700 font-medium">
-                                        Home delivery • {totalPrice >= 350 ? 'FREE delivery' : `${configService.formatCurrency(pricingConfig?.deliveryFee || 35)} delivery fee`}
+                                        Home delivery • {totalPrice >= freeDeliveryThreshold ? 'FREE delivery' : `${configService.formatCurrency(pricingConfig?.deliveryFee || 35)} delivery fee`}
                                     </p>
                                 </div>
 
                                 {/* Saved Addresses */}
-                                {!addressesLoading && savedAddresses && savedAddresses.length > 0 && !useNewAddress && (
+                                {!addressesLoading && allAddresses && allAddresses.length > 0 && !useNewAddress && (
                                     <div className="space-y-3">
-                                        <Label className="text-sm font-bold">Select Saved Address</Label>
+                                        <Label className="text-sm font-bold">Select Delivery Address</Label>
                                         <div className="space-y-2 max-h-64 overflow-y-auto">
-                                            {savedAddresses.map((addr) => (
+                                            {allAddresses.map((addr: any) => (
                                                 <div
-                                                    key={addr.id}
+                                                    key={addr.id || `prev-${addr.orderId}`}
                                                     onClick={() => handleSelectAddress(addr)}
                                                     className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
                                                         selectedAddressId === addr.id
@@ -451,8 +574,8 @@ function CheckoutContent() {
                                                     <div className="flex items-start justify-between">
                                                         <div className="flex-1">
                                                             <div className="flex items-center gap-2 mb-2">
-                                                                <Badge variant={addr.isDefault ? "default" : "secondary"}>
-                                                                    {addr.title}
+                                                                <Badge variant={addr.isDefault ? "default" : addr.isPrevious ? "outline" : "secondary"}>
+                                                                    {addr.isPrevious ? "Previous Order" : addr.title}
                                                                 </Badge>
                                                                 {addr.isDefault && (
                                                                     <Badge variant="outline" className="text-xs">Default</Badge>
@@ -496,9 +619,9 @@ function CheckoutContent() {
                                 )}
 
                                 {/* Manual Address Entry */}
-                                {(useNewAddress || !savedAddresses || savedAddresses.length === 0) && (
+                                {(useNewAddress || !allAddresses || allAddresses.length === 0) && (
                                     <div className="space-y-4">
-                                        {savedAddresses && savedAddresses.length > 0 && (
+                                        {allAddresses && allAddresses.length > 0 && (
                                             <div className="flex items-center justify-between">
                                                 <Label className="text-sm font-bold">Enter New Address</Label>
                                                 <Button
@@ -507,7 +630,7 @@ function CheckoutContent() {
                                                     onClick={() => {
                                                         setUseNewAddress(false);
                                                         // Select default address if available
-                                                        const defaultAddr = savedAddresses.find(a => a.isDefault);
+                                                        const defaultAddr = allAddresses.find((a: any) => a.isDefault);
                                                         if (defaultAddr) {
                                                             handleSelectAddress(defaultAddr);
                                                         }
@@ -650,9 +773,9 @@ function CheckoutContent() {
                                             )}
                                         </div>
                                     )}
-                                    {deliveryType === 'DELIVERY' && totalPrice < 350 && (
+                                    {deliveryType === 'DELIVERY' && totalPrice < freeDeliveryThreshold && (
                                         <p className="text-xs text-slate-500 italic">
-                                            Add {configService.formatCurrency(350 - totalPrice)} more for free delivery
+                                            Add {configService.formatCurrency(freeDeliveryThreshold - totalPrice)} more for free delivery
                                         </p>
                                     )}
                                     <div className="flex justify-between">

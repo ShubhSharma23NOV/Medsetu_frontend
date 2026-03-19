@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Upload, Download, FileSpreadsheet, AlertCircle, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { RoleGuard } from "@/components/auth/role-guard";
 import { API_BASE_URL } from "@/lib/api-config";
+import { medicineService } from "@/lib/medicine-service";
 
 export default function BulkUploadPage() {
     return (
@@ -20,15 +21,34 @@ function BulkUploadContent() {
     const [file, setFile] = useState<File | null>(null);
     const [uploading, setUploading] = useState(false);
     const [uploadResult, setUploadResult] = useState<any>(null);
+    const [userInfo, setUserInfo] = useState<any>(null);
+
+    // Check user info on mount
+    useEffect(() => {
+        const token = localStorage.getItem('auth-token');
+        if (token) {
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                setUserInfo(payload);
+                console.log('Current user:', JSON.stringify(payload, null, 2));
+                console.log('User role:', payload.role);
+                console.log('User ID:', payload.userId);
+            } catch (e) {
+                console.error('Failed to parse token:', e);
+            }
+        }
+    }, []);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             const selectedFile = e.target.files[0];
-            if (selectedFile.type === 'text/csv' || selectedFile.name.endsWith('.csv')) {
+            const fileExtension = selectedFile.name.split('.').pop()?.toLowerCase();
+            
+            if (['csv', 'xlsx', 'xls'].includes(fileExtension || '')) {
                 setFile(selectedFile);
                 setUploadResult(null);
             } else {
-                toast.error("Please select a CSV file");
+                toast.error("Please select a CSV or Excel file (.csv, .xlsx, .xls)");
             }
         }
     };
@@ -40,42 +60,104 @@ function BulkUploadContent() {
         }
 
         setUploading(true);
-        const formData = new FormData();
-        formData.append('file', file);
 
         try {
-            const response = await fetch(`${API_BASE_URL}/medicines/bulk-upload`, {
-                method: 'POST',
-                body: formData,
-                credentials: 'include',
+            console.log('Uploading file:', file.name, 'Size:', file.size, 'Type:', file.type);
+            const result = await medicineService.bulkUploadMedicines(file);
+            console.log('Upload result:', result);
+
+            setUploadResult(result);
+            toast.success(`Successfully uploaded ${result.successCount} medicines!`, {
+                description: result.summary || `${result.successCount} medicines added successfully.`
             });
-
-            const result = await response.json();
-
-            if (response.ok) {
-                setUploadResult(result);
-                toast.success(`Successfully uploaded ${result.successCount} medicines!`);
-                setFile(null);
-            } else {
-                toast.error(result.message || "Upload failed");
+            
+            if (result.errors && result.errors.length > 0) {
+                console.warn('Upload errors:', result.errors);
+                toast.warning(`${result.errorCount} rows had errors`, {
+                    description: "Check console for details"
+                });
             }
-        } catch (error) {
+            
+            setFile(null);
+            // Reset file input
+            const fileInput = document.getElementById('csv-upload') as HTMLInputElement;
+            if (fileInput) fileInput.value = '';
+        } catch (error: any) {
             console.error('Upload error:', error);
-            toast.error("Failed to upload file");
+            console.error('Error response:', JSON.stringify(error?.response, null, 2));
+            console.error('Error data:', JSON.stringify(error?.response?.data, null, 2));
+            console.error('Error status:', error?.response?.status);
+            console.error('Error message from backend:', error?.response?.data?.message);
+            
+            let errorMessage = 'Upload failed';
+            
+            if (error?.response?.data) {
+                // Backend returned structured error
+                errorMessage = error.response.data.message 
+                    || error.response.data.error
+                    || JSON.stringify(error.response.data);
+            } else if (error?.message) {
+                errorMessage = error.message;
+            }
+            
+            toast.error("Upload failed", {
+                description: errorMessage,
+                duration: 5000,
+            });
+            
+            // Show specific guidance based on error
+            if (errorMessage.includes('Store not found')) {
+                toast.info("Action Required", {
+                    description: "Please create a store first from the Store Application page, or login as a STORE user.",
+                    duration: 7000,
+                });
+            }
         } finally {
             setUploading(false);
         }
     };
 
-    const downloadTemplate = () => {
-        window.open('/medicine_template.csv', '_blank');
+    const downloadTemplate = async () => {
+        try {
+            const token = localStorage.getItem('auth-token');
+            if (!token) {
+                toast.error("Please login first");
+                return;
+            }
+            
+            const response = await fetch(`${API_BASE_URL}/medicines/bulk-upload/template`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to download template');
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'medicine_bulk_upload_template.xlsx';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            
+            toast.success("Template downloaded successfully!");
+        } catch (error) {
+            console.error('Template download error:', error);
+            toast.error("Failed to download template");
+        }
     };
 
     return (
         <div className="space-y-6">
             <div>
                 <h1 className="text-3xl font-black text-slate-900 mb-2">Bulk Medicine Upload</h1>
-                <p className="text-slate-600">Upload multiple medicines at once using CSV file</p>
+                <p className="text-slate-600">Upload multiple medicines at once using Excel (.xlsx, .xls) or CSV file</p>
             </div>
 
             {/* Template Download */}
@@ -90,7 +172,8 @@ function BulkUploadContent() {
                 </CardHeader>
                 <CardContent className="p-6">
                     <p className="text-slate-600 mb-4">
-                        Download the CSV template to see the required format for bulk upload
+                        Download the Excel template with sample data to see the required format for bulk upload. 
+                        The template includes examples of different medicine categories and required fields.
                     </p>
                     <Button 
                         onClick={downloadTemplate}
@@ -98,7 +181,7 @@ function BulkUploadContent() {
                         className="rounded-xl font-bold"
                     >
                         <FileSpreadsheet className="h-4 w-4 mr-2" />
-                        Download CSV Template
+                        Download Excel Template (.xlsx)
                     </Button>
                 </CardContent>
             </Card>
@@ -110,14 +193,14 @@ function BulkUploadContent() {
                         <div className="h-10 w-10 rounded-xl bg-green-50 flex items-center justify-center text-green-600">
                             <Upload className="h-5 w-5" />
                         </div>
-                        Upload CSV File
+                        Upload Excel or CSV File
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="p-6 space-y-4">
                     <div className="border-2 border-dashed border-slate-200 rounded-xl p-8 text-center">
                         <input
                             type="file"
-                            accept=".csv"
+                            accept=".csv,.xlsx,.xls"
                             onChange={handleFileChange}
                             className="hidden"
                             id="csv-upload"
@@ -131,10 +214,10 @@ function BulkUploadContent() {
                             </div>
                             <div>
                                 <p className="text-slate-900 font-bold mb-1">
-                                    {file ? file.name : "Click to select CSV file"}
+                                    {file ? file.name : "Click to select Excel or CSV file"}
                                 </p>
                                 <p className="text-sm text-slate-500">
-                                    or drag and drop your file here
+                                    Supports .xlsx, .xls, and .csv formats
                                 </p>
                             </div>
                         </label>

@@ -170,8 +170,8 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                         <Card className="p-6 rounded-3xl border-slate-800 bg-slate-900">
                             <h2 className="text-xl font-black text-white mb-4">Order Items</h2>
                             <div className="space-y-4">
-                                {order.OrderItems && order.OrderItems.length > 0 ? (
-                                    order.OrderItems.map((item: any) => (
+                                {order.orderItems && order.orderItems.length > 0 ? (
+                                    order.orderItems.map((item: any) => (
                                         <div key={item.id} className="flex items-center justify-between p-4 rounded-2xl bg-white border border-slate-200">
                                             <div className="flex items-center gap-4">
                                                 <div className="h-12 w-12 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center">
@@ -202,25 +202,37 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                             <Separator className="my-6 bg-slate-700" />
 
                             <div className="space-y-2">
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-slate-400">Subtotal</span>
-                                    <span className="font-bold text-white">₹{(order.amount * 0.85).toFixed(2)}</span>
-                                </div>
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-slate-400">Delivery Fee</span>
-                                    <span className="font-bold text-white">
-                                        {order.type === 'DELIVERY' ? '₹35' : 'FREE'}
-                                    </span>
-                                </div>
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-slate-400">GST (18%)</span>
-                                    <span className="font-bold text-white">₹{(order.amount * 0.15).toFixed(2)}</span>
-                                </div>
-                                <Separator className="my-2 bg-slate-700" />
-                                <div className="flex justify-between">
-                                    <span className="font-black text-white">Total Amount</span>
-                                    <span className="font-black text-white text-xl">₹{order.amount}</span>
-                                </div>
+                                {(() => {
+                                    // Calculate actual subtotal from order items
+                                    const subtotal = order.orderItems?.reduce((sum, item) => sum + (item.price * item.quantity), 0) || 0;
+                                    const deliveryFee = order.type === 'DELIVERY' ? 35 : 0;
+                                    const tax = subtotal * 0.18;
+                                    const calculatedTotal = subtotal + deliveryFee + tax;
+                                    
+                                    return (
+                                        <>
+                                            <div className="flex justify-between text-sm">
+                                                <span className="text-slate-400">Subtotal</span>
+                                                <span className="font-bold text-white">₹{subtotal.toFixed(2)}</span>
+                                            </div>
+                                            <div className="flex justify-between text-sm">
+                                                <span className="text-slate-400">Delivery Fee</span>
+                                                <span className="font-bold text-white">
+                                                    {order.type === 'DELIVERY' ? '₹35' : 'FREE'}
+                                                </span>
+                                            </div>
+                                            <div className="flex justify-between text-sm">
+                                                <span className="text-slate-400">GST (18%)</span>
+                                                <span className="font-bold text-white">₹{tax.toFixed(2)}</span>
+                                            </div>
+                                            <Separator className="my-2 bg-slate-700" />
+                                            <div className="flex justify-between">
+                                                <span className="font-black text-white">Total Amount</span>
+                                                <span className="font-black text-white text-xl">₹{order.amount.toFixed(2)}</span>
+                                            </div>
+                                        </>
+                                    );
+                                })()}
                             </div>
                         </Card>
                     </div>

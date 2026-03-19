@@ -190,9 +190,9 @@ function OrdersContent() {
 
                                     {/* Order Items Preview */}
                                     <div className="mb-4">
-                                        {order.OrderItems && order.OrderItems.length > 0 ? (
+                                        {order.orderItems && order.orderItems.length > 0 ? (
                                             <div className="flex flex-wrap gap-2">
-                                                {order.OrderItems.slice(0, 3).map((item) => (
+                                                {order.orderItems.slice(0, 3).map((item) => (
                                                     <div key={item.id} className="flex items-center gap-2 bg-slate-50 rounded-lg px-3 py-2">
                                                         <Pill className="h-4 w-4 text-primary" />
                                                         <span className="text-sm font-medium">{item.name}</span>
@@ -202,10 +202,10 @@ function OrdersContent() {
                                                         )}
                                                     </div>
                                                 ))}
-                                                {order.OrderItems.length > 3 && (
+                                                {order.orderItems.length > 3 && (
                                                     <div className="flex items-center gap-2 bg-slate-100 rounded-lg px-3 py-2">
                                                         <span className="text-sm text-slate-600">
-                                                            +{order.OrderItems.length - 3} more
+                                                            +{order.orderItems.length - 3} more
                                                         </span>
                                                     </div>
                                                 )}

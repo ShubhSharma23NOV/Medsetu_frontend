@@ -60,9 +60,9 @@ function UserOrderDetailContent({ params }: { params: Promise<{ id: string }> })
     };
 
     const handleReorder = () => {
-        if (!order?.OrderItems) return;
+        if (!order?.orderItems) return;
         
-        order.OrderItems.forEach((item: any) => {
+        order.orderItems.forEach((item: any) => {
             addItem({
                 id: item.medicineId,
                 name: item.name,
@@ -73,7 +73,7 @@ function UserOrderDetailContent({ params }: { params: Promise<{ id: string }> })
         });
         
         toast.success("Items added to cart", {
-            description: `${order.OrderItems.length} items added to your cart`
+            description: `${order.orderItems.length} items added to your cart`
         });
         
         router.push('/cart');
@@ -234,8 +234,8 @@ function UserOrderDetailContent({ params }: { params: Promise<{ id: string }> })
                         <Card className="p-6 rounded-2xl border-slate-200">
                             <h2 className="text-xl font-black text-slate-900 mb-4">Order Items</h2>
                             <div className="space-y-4">
-                                {order.OrderItems && order.OrderItems.length > 0 ? (
-                                    order.OrderItems.map((item: any) => (
+                                {order.orderItems && order.orderItems.length > 0 ? (
+                                    order.orderItems.map((item: any) => (
                                         <div key={item.id} className="flex items-center gap-4 p-4 rounded-xl bg-slate-50 border border-slate-100">
                                             <div className="h-16 w-16 rounded-xl bg-white border border-slate-100 flex items-center justify-center">
                                                 <Pill className="h-8 w-8 text-primary" />
@@ -268,25 +268,36 @@ function UserOrderDetailContent({ params }: { params: Promise<{ id: string }> })
                             <Separator className="my-6" />
 
                             <div className="space-y-2">
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-slate-600">Subtotal</span>
-                                    <span className="font-bold text-slate-900">₹{(order.amount * 0.85).toFixed(2)}</span>
-                                </div>
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-slate-600">Delivery Fee</span>
-                                    <span className="font-bold text-slate-900">
-                                        {order.type === 'DELIVERY' ? '₹35' : 'FREE'}
-                                    </span>
-                                </div>
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-slate-600">GST (18%)</span>
-                                    <span className="font-bold text-slate-900">₹{(order.amount * 0.15).toFixed(2)}</span>
-                                </div>
-                                <Separator className="my-2" />
-                                <div className="flex justify-between">
-                                    <span className="font-black text-slate-900">Total Amount</span>
-                                    <span className="font-black text-slate-900 text-xl">₹{order.amount}</span>
-                                </div>
+                                {(() => {
+                                    // Calculate actual subtotal from order items
+                                    const subtotal = order.orderItems?.reduce((sum, item) => sum + (item.price * item.quantity), 0) || 0;
+                                    const deliveryFee = order.type === 'DELIVERY' ? 35 : 0;
+                                    const tax = subtotal * 0.18;
+                                    
+                                    return (
+                                        <>
+                                            <div className="flex justify-between text-sm">
+                                                <span className="text-slate-600">Subtotal</span>
+                                                <span className="font-bold text-slate-900">₹{subtotal.toFixed(2)}</span>
+                                            </div>
+                                            <div className="flex justify-between text-sm">
+                                                <span className="text-slate-600">Delivery Fee</span>
+                                                <span className="font-bold text-slate-900">
+                                                    {order.type === 'DELIVERY' ? '₹35' : 'FREE'}
+                                                </span>
+                                            </div>
+                                            <div className="flex justify-between text-sm">
+                                                <span className="text-slate-600">GST (18%)</span>
+                                                <span className="font-bold text-slate-900">₹{tax.toFixed(2)}</span>
+                                            </div>
+                                            <Separator className="my-2" />
+                                            <div className="flex justify-between">
+                                                <span className="font-black text-slate-900">Total Amount</span>
+                                                <span className="font-black text-slate-900 text-xl">₹{order.amount.toFixed(2)}</span>
+                                            </div>
+                                        </>
+                                    );
+                                })()}
                             </div>
                         </Card>
                     </div>

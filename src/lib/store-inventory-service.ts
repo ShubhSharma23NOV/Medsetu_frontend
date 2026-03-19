@@ -76,17 +76,18 @@ export const storeInventoryService = {
      * Bulk upload medicines
      */
     async bulkUploadMedicines(file: File): Promise<{
+        success: boolean;
+        totalRows: number;
         successCount: number;
-        errors?: string[];
+        errorCount: number;
+        errors?: any[];
+        summary?: string;
     }> {
         const formData = new FormData();
         formData.append('file', file);
 
-        const { data } = await apiClient.post("/medicines/bulk-upload", formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
-        });
+        // Don't set Content-Type header - let browser set it with boundary
+        const { data } = await apiClient.post("/medicines/bulk-upload", formData);
         return data;
     }
 };

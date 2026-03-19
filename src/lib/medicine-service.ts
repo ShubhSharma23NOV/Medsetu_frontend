@@ -91,16 +91,14 @@ export const medicineService = {
         message: string;
         totalRows: number;
         successCount: number;
-        errors: string[];
+        errorCount: number;
+        errors: any[];
+        summary: string;
     }> {
         const formData = new FormData();
         formData.append('file', file);
 
-        const { data } = await apiClient.post("/medicines/bulk-upload", formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
-        });
+        const { data } = await apiClient.post("/medicines/bulk-upload", formData);
         return data;
     }
 };

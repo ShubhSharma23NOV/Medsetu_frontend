@@ -132,11 +132,42 @@ function BulkUploadDialog({ onUploadSuccess }: { onUploadSuccess: () => void }) 
     const [isUploading, setIsUploading] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
+    const downloadTemplate = async () => {
+        try {
+            const token = localStorage.getItem('auth-token');
+            const response = await fetch(`${API_BASE_URL}/medicines/bulk-upload/template`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to download template');
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'medicine_bulk_upload_template.xlsx';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            
+            toast.success("Template downloaded successfully!");
+        } catch (error) {
+            console.error('Template download error:', error);
+            toast.error("Failed to download template");
+        }
+    };
+
     const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
-            const validTypes = ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel', 'text/csv'];
-            if (validTypes.includes(file.type)) {
+            const fileExtension = file.name.split('.').pop()?.toLowerCase();
+            if (['csv', 'xlsx', 'xls'].includes(fileExtension || '')) {
                 setSelectedFile(file);
             } else {
                 toast.error("Invalid file type", {
@@ -208,8 +239,8 @@ function BulkUploadDialog({ onUploadSuccess }: { onUploadSuccess: () => void }) 
                         <ul className="text-sm text-blue-700 space-y-1">
                             <li>• Upload Excel (.xlsx, .xls) or CSV files</li>
                             <li>• Required: name, price, category, healthCondition, brand, dosage, expiryDate</li>
-                            <li>• Optional: description, quantity, inStock, rxRequired</li>
-                            <li>• Download template for correct format</li>
+                            <li>• Optional: description, quantity, inStock, rxRequired, imageUrl</li>
+                            <li>• Download template for correct format with sample data</li>
                         </ul>
                     </div>
 
