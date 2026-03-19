@@ -110,12 +110,12 @@ export default function RegisterPage() {
                     toast.success("Store Application Submitted!", {
                         description: "Your application is under review. We'll notify you via email.",
                     });
-                    router.push("/store-application");
+                    router.push("/admin");
                 } catch (storeError) {
                     toast.error("Store Application Failed", {
-                        description: "Account created but store application failed. Please complete it from your dashboard.",
+                        description: "Account created but store application failed. Please try again from your dashboard.",
                     });
-                    router.push("/store-application");
+                    router.push("/admin");
                 }
             } else {
                 toast.success("Account Created!", {
